@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/prisma-notification-client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("NOTIFICATION_DB_URL")
+}
+
+model Notification {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  type         String
+  postId       String?
+  userId       String
+  content      Json
+  diObject     Obj?
+  subjects     Obj[]
+  subjectCount Int
+  url          String?
+  read         Boolean
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([type, postId, userId])
+}
+
+type Obj {
+  id       String
+  name     String?
+  imageUrl String?
+}
