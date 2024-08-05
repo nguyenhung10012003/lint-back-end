@@ -4,7 +4,6 @@ export class ResponseNotifications {
 }
 export class Notification {
   id: string;
-
   userId: string;
   diObject?: Obj | undefined;
   subject: Obj | undefined;
