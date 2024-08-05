@@ -1,0 +1,30 @@
+input {
+  jdbc {
+    jdbc_driver_library => "/usr/share/logstash/config/mysql-connector-j-9.0.0.jar"
+    jdbc_driver_class => "com.mysql.cj.jdbc.Driver"
+    jdbc_connection_string => "{url}"
+    jdbc_user => "{user}"
+    jdbc_password => "{pass}"
+    jdbc_paging_enabled => true
+    schedule => "*/5 * * * * *"
+    tracking_column => "ts_updatedat"
+    clean_run => true
+    use_column_value => true
+    tracking_column_type => "numeric"
+    statement => "{statement}"
+  }
+}
+filter {
+  mutate {
+    remove_field => ["@version", "ts_updatedat"]
+  }
+}
+output {
+  elasticsearch {
+    index => "lint-user"
+    document_id => "%{[id]}"
+    ilm_enabled => false
+    hosts => ["elasticsearch:9200"]
+    doc_as_upsert => true
+  }
+}

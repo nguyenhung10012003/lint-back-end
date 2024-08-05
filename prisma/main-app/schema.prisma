@@ -13,31 +13,30 @@ model User {
   id          String       @id @default(cuid())
   email       String       @unique
   password    String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
   profile     Profile?
   mediaLink   Media_Link[]
   followings  Follow[]     @relation("follower_user")
   followers   Follow[]     @relation("following_user")
-  blacklist   Blacklist?   @relation(fields: [blacklistId], references: [id])
-  blacklistId String?
-  post        Post[]
-  Comment     Comment[]
-
-  Like Like[]
+  posts       Post[]
+  comments    Comment[]
+  likes       Like[]
+  blacklist   Blacklist?   @relation("blacklist_owner")
+  inBlacklist Blacklist[]  @relation("blacklist_user")
 }
 
 model Profile {
-  id      String    @id @default(cuid())
-  user    User      @relation(fields: [userId], references: [id])
-  userId  String    @unique
-  name    String?
-  dob     DateTime?
-  country String?
-  gender  String?
-  avatar  String?
-  alias   String?   @unique
-  bio     String?
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String    @unique
+  name      String?
+  dob       DateTime?
+  country   String?
+  gender    String?
+  avatar    String?
+  alias     String?   @unique
+  bio       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Media_Link {
@@ -61,9 +60,11 @@ model Follow {
 
 model Blacklist {
   id        String   @id @default(cuid())
-  userId    String   @unique
+  ownerId   String   @unique
   createdAt DateTime @default(now())
-  list      User[]
+  updatedAt DateTime @updatedAt
+  owner     User     @relation("blacklist_owner", fields: [ownerId], references: [id])
+  list      User[]   @relation("blacklist_user")
 }
 
 model Post {
@@ -107,7 +108,7 @@ model Tag {
 model Like {
   id        String   @id @default(cuid())
   userId    String
-  postId    String
+  postId    String?
   commentId String?
   for       LikeFor
   user      User     @relation(fields: [userId], references: [id])
@@ -116,6 +117,7 @@ model Like {
   createdAt DateTime @default(now())
 
   @@unique([userId, postId])
+  @@unique([userId, commentId])
 }
 
 model Comment {

@@ -1,0 +1,6 @@
+export enum ErrorType {
+  DUPPLICATE = 'DUPPLICATE',
+  UNKNOWN = 'UNKNOWN',
+  INVALID = 'INVALID',
+  NOTFOUND = 'NOTFOUND',
+}

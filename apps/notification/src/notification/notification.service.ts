@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { FindParams } from './dto/request/find.params';
-import { ResponseNotifications } from './dto/response/notification';
-import { NotificationWhereUniqueDto } from './dto/request/delete.notification';
-import { UpdateStatusDto } from './dto/request/update.status';
+import { FindParams } from './dto/find.params';
+import { ResponseNotifications } from './dto/notification';
+import { NotificationWhereUniqueDto } from './dto/delete.notification';
+import { UpdateStatusDto } from './dto/update.status';
 import { ConsumerService } from '../kafka/consumer.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -12,8 +12,8 @@ import {
   getNotificationType,
   updateContentOnLanguage,
 } from './helper/helper';
-import { CreateNotificationDto } from './dto/request/create.notification';
-import { NotificationType } from './types/NotificationType';
+import { CreateNotificationDto } from './dto/create.notification';
+import { NotificationType } from './types/notification.type';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -30,7 +30,9 @@ export class NotificationService implements OnModuleInit {
         eachMessage: async ({ message }) => {
           const { key, value } = message;
           try {
-            await this.handleNotification(key, value);
+            if (key && value) {
+              await this.handleNotification(key, value);
+            }
           } catch (error) {
             console.error(error);
           }
@@ -42,6 +44,7 @@ export class NotificationService implements OnModuleInit {
   async handleNotification(key: Buffer, value: Buffer) {
     const toStringKey = key.toString();
     const type: number = getNotificationType(toStringKey);
+    console.log(type);
 
     const toStringValue = value.toString();
     const parsedValue = JSON.parse(toStringValue);
@@ -50,8 +53,7 @@ export class NotificationService implements OnModuleInit {
   }
 
   async upsert(upsertDto: CreateNotificationDto, type: number) {
-    let notification = null;
-    // only upsert if notification is like or comment type
+    let notification: any;
     if (type === NotificationType.LIKE || type === NotificationType.COMMENT) {
       notification = await this.prismaService.notification.findFirst({
         where: {
@@ -79,10 +81,10 @@ export class NotificationService implements OnModuleInit {
       ? notification.subjectCount + updateSubject
       : 1;
     const content = generateNotificationContent(
-      upsertDto.subject.name,
+      upsertDto.subject.name ? upsertDto.subject.name : '',
       subjectCount,
       type,
-      upsertDto.diObject.name,
+      upsertDto.diObject.name ? upsertDto.diObject.name : '',
     );
 
     // TODO: implement user setting language
@@ -106,14 +108,20 @@ export class NotificationService implements OnModuleInit {
       read: false,
       lastModified: new Date().toISOString(),
     };
-
-    const upsertNoti = await this.prismaService.notification.upsert({
-      where: {
-        id: notification.id,
-      },
-      create: data,
-      update: data,
-    });
+    console.log(data);
+    let upsertNoti: any;
+    if (notification) {
+      upsertNoti = await this.prismaService.notification.update({
+        where: {
+          id: notification.id,
+        },
+        data: data,
+      });
+    } else {
+      upsertNoti = await this.prismaService.notification.create({
+        data: data,
+      });
+    }
 
     const unreadCount = await this.prismaService.notification.count({
       where: {
@@ -123,8 +131,11 @@ export class NotificationService implements OnModuleInit {
     });
     const lastSubject = upsertNoti.subjects[upsertNoti.subjects.length - 1];
     this.eventEmitter.emit('notification', {
+      userId: upsertNoti.userId,
       id: upsertNoti.id,
-      content: JSON.parse(upsertNoti.compiledContent.toString()),
+      content: JSON.parse(
+        upsertNoti.compiledContent ? upsertNoti.compiledContent.toString() : '',
+      ),
       subject: lastSubject,
       diObject: upsertNoti.diObject,
       url: upsertNoti.url,
@@ -159,7 +170,9 @@ export class NotificationService implements OnModuleInit {
         return {
           id: notification.id,
           userId: notification.userId,
-          content: JSON.parse(notification.compiledContent.toString()),
+          content: notification.compiledContent
+            ? JSON.parse(notification.compiledContent.toString())
+            : null,
           diObject: notification.diObject,
           subject: notification.subjects[notification.subjects.length - 1],
           url: notification.url,

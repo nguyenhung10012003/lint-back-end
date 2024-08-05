@@ -29,6 +29,24 @@
         "tsConfigPath": "apps/notification/tsconfig.app.json",
         "watchAssets": true
       }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "blacklist": {
+      "type": "application",
+      "root": "apps/blacklist",
+      "entryFile": "main",
+      "sourceRoot": "apps/blacklist/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/blacklist/tsconfig.app.json"
+      }
     }
   }
 }

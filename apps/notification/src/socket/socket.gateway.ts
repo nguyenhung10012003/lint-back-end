@@ -9,7 +9,7 @@ import { Server, Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from './jwt.payload';
 import { OnEvent } from '@nestjs/event-emitter';
-import { Notification } from '../notification/dto/response/notification';
+import { Notification } from '../notification/dto/notification';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -34,7 +34,7 @@ export class SocketGateway
     try {
       payload = jwt.verify(
         token,
-        process.env.JWT_ACCESS_TOKEN_SECRET,
+        process.env.JWT_ACCESS_TOKEN_SECRET || '',
       ) as JwtPayload;
     } catch (error) {
       client.disconnect(true);
@@ -53,6 +53,7 @@ export class SocketGateway
 
   @OnEvent('notification')
   handleCreatedEvent(notification: Notification) {
+    console.log('notification', notification);
     this.server.to(`user_${notification.userId}`).emit('notification', {
       message: 'notification',
       data: notification,

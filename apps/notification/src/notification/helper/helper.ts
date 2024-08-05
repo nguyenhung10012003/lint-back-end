@@ -1,5 +1,6 @@
 import * as Handlebars from 'handlebars';
-import { Lang } from '../types/Lang';
+import { Lang } from '../types/lang';
+import { Highlight } from '../dto/notification';
 
 Handlebars.registerHelper('gt', function (a: number, b: number) {
   return a > b;
@@ -47,7 +48,7 @@ export const generateNotificationContent = (
   };
 
   let text = '';
-  const highlights = [];
+  const highlights: Highlight[] = [];
 
   switch (notificationType) {
     case 1:
@@ -99,7 +100,7 @@ export function updateContentOnLanguage(language: Lang, content: any) {
   };
 }
 
-export function generateUrl(type: number, id: string) {
+export function generateUrl(type: number, id?: string) {
   switch (type) {
     case 1:
       return `/post/${id}`;
