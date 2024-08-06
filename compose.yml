@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 services:
   main:
     image: lint-microservice:latest
@@ -21,7 +21,7 @@ services:
     command: ["node" , "dist/apps/notification/src/main"]
     
   elasticsearch:
-    container_name: elasticsearch
+    container_name: lint-es
     image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
     environment:
       - discovery.type=single-node
@@ -34,7 +34,7 @@ services:
       - elasticvolume:/usr/share/elasticsearch/data
 
   logstash:
-    container_name: logstash
+    container_name: lint-logstash
     build: 
       context: ./logstash/
       dockerfile: Dockerfile
@@ -68,3 +68,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  elasticvolume:
+  logstashvolume:

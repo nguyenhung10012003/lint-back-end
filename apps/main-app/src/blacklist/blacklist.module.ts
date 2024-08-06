@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BlacklistService } from './blacklist.service';
 import { BlacklistController } from './blacklist.controller';
+import { BlacklistService } from './blacklist.service';
 import { PrismaService } from '../prisma.service';
 
 @Module({

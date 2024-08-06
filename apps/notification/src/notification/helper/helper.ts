@@ -1,6 +1,7 @@
 import * as Handlebars from 'handlebars';
 import { Lang } from '../types/lang';
 import { Highlight } from '../dto/notification';
+import { NotificationType } from '../types/notification.type';
 
 Handlebars.registerHelper('gt', function (a: number, b: number) {
   return a > b;
@@ -23,12 +24,11 @@ const templates = {
 const translationDictionaries = [
   {}, // Vietnamese
   {
-    'đã bình luận về bài viết của bạn': 'commented on your post',
-    'đã thích bài viết của bạn': 'liked your post',
-    'đã theo dõi bạn': 'started following you',
-    // eslint-disable-next-line prettier/prettier
-    'và': 'and',
-    'người khác': 'others',
+    ' đã bình luận về bài viết của bạn': ' commented on your post',
+    ' đã thích bài viết của bạn': ' liked your post',
+    ' đã theo dõi bạn': ' started following you',
+    ' và': ' and',
+    ' người khác': ' others',
   },
 ];
 
@@ -81,7 +81,6 @@ export const generateNotificationContent = (
 
 export function updateContentOnLanguage(language: Lang, content: any) {
   if (language === 0) {
-    console.log('content: ', content);
     return content;
   }
   const highlights = content.highlights;
@@ -113,16 +112,16 @@ export function generateUrl(type: number, id?: string) {
   }
 }
 
-export function getNotificationType(stringKey: string): number {
+export function getNotificationType(stringKey: string): NotificationType {
   switch (stringKey) {
-    case 'comment':
-      return 1;
     case 'like':
+      return 1;
+    case 'comment':
       return 2;
     case 'follow':
-      return 2;
+      return 3;
     default:
-      return 4;
+      return 0;
   }
 }
 

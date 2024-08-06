@@ -43,8 +43,7 @@ export class NotificationService implements OnModuleInit {
 
   async handleNotification(key: Buffer, value: Buffer) {
     const toStringKey = key.toString();
-    const type: number = getNotificationType(toStringKey);
-    console.log(type);
+    const type: NotificationType = getNotificationType(toStringKey);
 
     const toStringValue = value.toString();
     const parsedValue = JSON.parse(toStringValue);
@@ -58,11 +57,11 @@ export class NotificationService implements OnModuleInit {
       notification = await this.prismaService.notification.findFirst({
         where: {
           AND: [
-            {
-              type: type.toString(),
-            },
-            { postId: upsertDto.postId },
             { userId: upsertDto.userId },
+            { postId: upsertDto.postId },
+            {
+              type: type,
+            },
           ],
         },
       });
@@ -89,7 +88,7 @@ export class NotificationService implements OnModuleInit {
 
     // TODO: implement user setting language
     const data = {
-      type: type.toString(),
+      type: type,
       postId: upsertDto.postId,
       diObject: upsertDto.diObject,
       userId: upsertDto.userId,
@@ -106,9 +105,9 @@ export class NotificationService implements OnModuleInit {
           ? generateUrl(type, upsertDto.subject.id)
           : generateUrl(type, upsertDto.postId),
       read: false,
-      lastModified: new Date().toISOString(),
+      lastModified: new Date(),
     };
-    console.log(data);
+
     let upsertNoti: any;
     if (notification) {
       upsertNoti = await this.prismaService.notification.update({
@@ -129,6 +128,7 @@ export class NotificationService implements OnModuleInit {
         read: false,
       },
     });
+
     const lastSubject = upsertNoti.subjects[upsertNoti.subjects.length - 1];
     this.eventEmitter.emit('notification', {
       userId: upsertNoti.userId,

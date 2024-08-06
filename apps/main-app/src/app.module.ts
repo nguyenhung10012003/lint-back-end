@@ -13,9 +13,10 @@ import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
 import { FeedModule } from './feed/feed.module';
 import { BlacklistModule } from './blacklist/blacklist.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
-  imports: [UserModule, ProfileModule, CommonModule, AuthModule, PostModule, FollowingModule, CommentModule, LikeModule, FeedModule, BlacklistModule],
+  imports: [UserModule, ProfileModule, CommonModule, AuthModule, PostModule, FollowingModule, CommentModule, LikeModule, FeedModule, BlacklistModule, SearchModule],
   controllers: [],
   providers: [AccessTokenStrategy, RefreshTokenStrategy],
 })
