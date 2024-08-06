@@ -8,6 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserService } from '../user/user.service';
+import { generatePassword } from '../utils/string';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +26,13 @@ export class AuthService {
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid password');
     const payload = { sub: user.id, username: user.email };
+    return this.createAuthResponse(user, payload);
+  }
+
+  async createAuthResponse(
+    user: any,
+    payload: { sub: string; username: string },
+  ) {
     return {
       userId: user.id,
       token: await this.createToken(
@@ -89,5 +97,25 @@ export class AuthService {
 
   async refreshToken(data: { refreshToken: string }) {
     return this.validateRefreshToken(data.refreshToken);
+  }
+
+  async oauthSignin(user: any) {
+    const { email, firstName, lastName } = user;
+    const userExist = await this.userService.findOne({ where: { email } });
+    if (userExist) {
+      return this.createAuthResponse(userExist, {
+        sub: userExist.id,
+        username: userExist.email,
+      });
+    } else {
+      const newUser = await this.userService.create({
+        email,
+        password: generatePassword({ length: 10 }),
+      });
+      return this.createAuthResponse(newUser, {
+        sub: newUser.id,
+        username: newUser.email,
+      });
+    }
   }
 }
