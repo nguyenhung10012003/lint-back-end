@@ -13,21 +13,48 @@ export class LikeService {
   async create(params: Prisma.LikeCreateArgs) {
     const newLike = await this.prismaService.like.create(params);
 
-    const payload: NotificationPayload = {
-      postId: newLike.postId,
-      subjectId: newLike.userId,
-      diId: newLike.postId,
-      diName: '',
-    };
+    const profile = this.prismaService.profile.findUnique({
+      where: {
+        userId: newLike.userId,
+      },
+    });
 
-    this.producerService.produce({
-      topic: 'notification',
-      messages: [
-        {
-          key: 'like',
-          value: JSON.stringify(payload),
+    const postId = newLike.postId || '';
+    const post = this.prismaService.post.findUnique({
+      where: {
+        id: postId,
+      },
+    });
+
+    Promise.all([profile, post]).then(([profile, post]) => {
+      if (!post || !profile) {
+        throw new Error('Post or profile not found');
+      }
+
+      const payload: NotificationPayload = {
+        postId: newLike.postId,
+        userId: post.userId,
+        subject: {
+          id: newLike.userId,
+          name: profile.name,
+          imageUrl: profile.avatar,
         },
-      ],
+        diObject: {
+          id: postId,
+          name: post.content,
+          imageUrl: null,
+        },
+      };
+
+      this.producerService.produce({
+        topic: 'notification',
+        messages: [
+          {
+            key: 'like',
+            value: JSON.stringify(payload),
+          },
+        ],
+      });
     });
 
     return newLike;

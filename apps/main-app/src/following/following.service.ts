@@ -16,19 +16,40 @@ export class FollowingService {
   }) {
     const follow = await this.prismaService.follow.create(params);
 
-    const notificationPayload: NotificationPayload = {
-      subjectId: follow.followerId,
-      diId: follow.followingId,
-    };
+    const profile = this.prismaService.profile.findUnique({
+      where: {
+        userId: follow.followerId,
+      },
+    });
 
-    this.producerService.produce({
-      topic: 'notification',
-      messages: [
-        {
-          key: 'follow',
-          value: JSON.stringify(notificationPayload),
+    profile.then((profile) => {
+      if (!profile) {
+        throw new Error('Post or profile not found');
+      }
+
+      const payload: NotificationPayload = {
+        postId: null,
+        userId: follow.followingId,
+        subject: {
+          id: follow.followerId,
+          name: profile.name,
+          imageUrl: profile.avatar,
         },
-      ],
+        diObject: {
+          id: follow.followingId,
+          name: null,
+          imageUrl: null,
+        },
+      };
+      this.producerService.produce({
+        topic: 'notification',
+        messages: [
+          {
+            key: 'follow',
+            value: JSON.stringify(payload),
+          },
+        ],
+      });
     });
 
     return follow;

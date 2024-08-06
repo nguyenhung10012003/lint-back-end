@@ -14,21 +14,47 @@ export class CommentService {
   async create(params: Prisma.CommentCreateArgs) {
     const newComment = await this.prismaService.comment.create(params);
 
-    const payload: NotificationPayload = {
-      postId: newComment.postId,
-      subjectId: newComment.userId,
-      diId: newComment.id,
-      diName: newComment.content,
-    };
+    const profile = this.prismaService.profile.findUnique({
+      where: {
+        userId: newComment.userId,
+      },
+    });
 
-    this.producerService.produce({
-      topic: 'notification',
-      messages: [
-        {
-          key: 'comment',
-          value: JSON.stringify(payload),
+    const post = this.prismaService.post.findUnique({
+      where: {
+        id: newComment.postId,
+      },
+    });
+
+    Promise.all([profile, post]).then(([profile, post]) => {
+      if (!post || !profile) {
+        throw new Error('Post or profile not found');
+      }
+
+      const payload: NotificationPayload = {
+        postId: newComment.postId,
+        userId: post.userId,
+        subject: {
+          id: newComment.userId,
+          name: profile.name,
+          imageUrl: profile.avatar,
         },
-      ],
+        diObject: {
+          id: newComment.postId,
+          name: post.content,
+          imageUrl: null,
+        },
+      };
+
+      this.producerService.produce({
+        topic: 'notification',
+        messages: [
+          {
+            key: 'comment',
+            value: JSON.stringify(payload),
+          },
+        ],
+      });
     });
 
     return newComment;
