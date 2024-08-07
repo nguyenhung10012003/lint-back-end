@@ -3,15 +3,82 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 @Injectable()
 export class SearchService {
+  private readonly userIdx = 'lint_user_idx';
   constructor(private readonly esService: ElasticsearchService) {}
 
-  async search(index: string, query: any) {
-    const result = await this.esService.search({
-      index,
+  /**
+   * Call the search method of the ElasticsearchService to search for documents in the specified index.
+   * @param params search parameters: include index and elasticsearch body
+   * @returns Array of search results
+   */
+  async search(params: { index: string; body: any }) {
+    return this.esService.search(params);
+  }
+
+  /**
+   * Call the search method of the ElasticsearchService to get suggetions for user names in the user index.
+   * @param query search query
+   * @param size number of results to return
+   * @param from starting index
+   * @returns Array of search results
+   */
+  async usernameAutocomplete({
+    query,
+    size,
+  }: {
+    query: string;
+    size?: number;
+  }) {
+    const result = await this.search({
+      index: this.userIdx,
       body: {
-        query,
+        suggest: {
+          suggestion: {
+            prefix: query,
+            completion: {
+              field: 'name.completion',
+              fuzzy: {
+                fuzziness: 'auto',
+              },
+            },
+          },
+        },
       },
     });
+    return result.suggest?.suggestion[0]?.options;
+  }
+
+  /**
+   * Call the search method of the ElasticsearchService to search for users in the user index.
+   * @param query search query
+   * @param size number of results to return
+   * @param from starting index
+   * @returns Array of search results
+   */
+  async searchUsers({
+    query,
+    from,
+    size,
+  }: {
+    query: string;
+    from?: number;
+    size?: number;
+  }) {
+    const result = await this.search({
+      index: this.userIdx,
+      body: {
+        query: {
+          multi_match: {
+            query,
+            fields: ['name', 'alias'],
+            fuzziness: 'auto',
+          },
+        },
+        from,
+        size,
+      },
+    });
+    console.log(result);
     return result.hits.hits;
   }
 }
