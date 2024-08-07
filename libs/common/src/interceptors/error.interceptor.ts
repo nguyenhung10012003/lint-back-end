@@ -3,6 +3,7 @@ import {
   BadRequestException,
   CallHandler,
   ExecutionContext,
+  HttpException,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
@@ -14,12 +15,22 @@ interface ErrorHandler {
   handle(error: Error): Observable<never>;
 }
 
+/**
+ * Http error handler
+ * @class HttpErrorHandler handles all http errors
+ * @method handle Handle http error
+ */
 class HttpErrorHandler implements ErrorHandler {
   handle(error: Error) {
     return throwError(() => error);
   }
 }
 
+/**
+ * Zod error handler
+ * @class ZodErrorHandler handles all zod errors
+ * @method handle Handle zod error
+ */
 class ZodErrorHandler implements ErrorHandler {
   handle(error: Error) {
     return throwError(
@@ -32,6 +43,11 @@ class ZodErrorHandler implements ErrorHandler {
   }
 }
 
+/**
+ * Prisma error handler
+ * @class PrismaErrorHandler handles all prisma errors
+ * @method handle Handle prisma error
+ */
 class PrismaErrorHandler implements ErrorHandler {
   handle(error) {
     if (error.constructor.name === 'PrismaClientKnownRequestError') {
@@ -82,6 +98,11 @@ class DefaultErrorHandler implements ErrorHandler {
   }
 }
 
+/**
+ * Error handler factory
+ * @class ErrorHandlerFactory
+ * @method getHandler Get error handler based on error type
+ */
 class ErrorHandlerFactory {
   static getHandler(error: Error) {
     console.log(error);
@@ -93,7 +114,7 @@ class ErrorHandlerFactory {
       error.constructor.name === 'PrismaClientValidationError'
     ) {
       return new PrismaErrorHandler();
-    } else if (error.constructor.name === 'HttpException') {
+    } else if (error instanceof HttpException) {
       return new HttpErrorHandler();
     } else {
       return new DefaultErrorHandler();
@@ -106,7 +127,6 @@ export class ErrorInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       catchError((error: Error) => {
-        console.log(error);
         const handler = ErrorHandlerFactory.getHandler(error);
         return handler.handle(error);
       }),

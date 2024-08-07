@@ -41,6 +41,12 @@ export class PostService {
     return post;
   }
 
+  /**
+   * @deprecated Use search module to search post instead
+   * Search for posts
+   * @param params
+   * @returns Array of posts
+   */
   async search(params: {
     key?: string;
     skip?: number;

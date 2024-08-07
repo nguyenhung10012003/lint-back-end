@@ -11,8 +11,10 @@ export class LikeService {
     private readonly producerService: ProducerService,
   ) {}
   async create(params: Prisma.LikeCreateArgs) {
+    // Create a new like
     const newLike = await this.prismaService.like.create(params);
 
+    // Get the profile and post
     const profile = this.prismaService.profile.findUnique({
       where: {
         userId: newLike.userId,
