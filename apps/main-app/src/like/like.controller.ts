@@ -38,6 +38,7 @@ export class LikeController {
       userId: req.user.userId,
       id: req.body.id,
       postId: req.body.postId,
+      commentId: req.body.commentId,
     });
   }
 
@@ -49,15 +50,20 @@ export class LikeController {
   @Get('count')
   count(@Query() query: CountQuery) {
     return this.likeService.count({
-      postId: query.postId + '',
+      postId: query.postId ? query.postId + '' : undefined,
+      commentId: query.commentId ? query.commentId + '' : undefined,
     });
   }
 
   @Get('exist')
-  exists(@Req() req: any, @Query() query: { userId: string; postId: string }) {
+  exists(
+    @Req() req: any,
+    @Query() query: { userId: string; postId: string; commentId: string },
+  ) {
     return this.likeService.exists({
       userId: req.user.userId,
       postId: query.postId,
+      commentId: query.commentId,
     });
   }
 }

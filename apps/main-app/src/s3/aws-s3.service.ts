@@ -20,7 +20,7 @@ export class AwsS3Service {
   async uploadFile(file: Express.Multer.File) {
     const params: PutObjectCommandInput = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `media/${Date.now()}-${file.originalname}`,
+      Key: `media/${Date.now()}-${file.originalname.length > 10 ? file.originalname.slice(0, 10) : file.originalname}`,
       Body: file.buffer,
       ContentType: file.mimetype,
     };

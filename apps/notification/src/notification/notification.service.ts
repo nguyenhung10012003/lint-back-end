@@ -14,6 +14,7 @@ import {
 } from './helper/helper';
 import { CreateNotificationDto } from './dto/create.notification';
 import { NotificationType } from './types/notification.type';
+import { Lang } from './types/lang';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -56,13 +57,9 @@ export class NotificationService implements OnModuleInit {
     if (type === NotificationType.LIKE || type === NotificationType.COMMENT) {
       notification = await this.prismaService.notification.findFirst({
         where: {
-          AND: [
-            { userId: upsertDto.userId },
-            { postId: upsertDto.postId },
-            {
-              type: type,
-            },
-          ],
+          userId: upsertDto.userId,
+          postId: upsertDto.postId,
+          type: type,
         },
       });
     }
@@ -93,7 +90,9 @@ export class NotificationService implements OnModuleInit {
       diObject: upsertDto.diObject,
       userId: upsertDto.userId,
       content: JSON.stringify(content),
-      compiledContent: JSON.stringify(updateContentOnLanguage(0, content)),
+      compiledContent: JSON.stringify(
+        updateContentOnLanguage(Lang.VN, content),
+      ),
       subjects: notification
         ? updateSubject
           ? [...notification.subjects, upsertDto.subject]
