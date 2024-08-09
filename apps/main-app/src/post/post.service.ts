@@ -75,19 +75,21 @@ export class PostService {
     return this.prisma.post.findMany({
       where: {
         content: params.key && { contains: params.key },
-        tags: params.tags && {
-          some: {
-            name: {
-              in: params.tags,
-            },
-          },
-        },
+        tags: params.tags
+          ? {
+              some: {
+                name: {
+                  in: params.tags,
+                },
+              },
+            }
+          : undefined,
         id: params.idsNotIn && {
           notIn: params.idsNotIn,
         },
       },
-      skip: params.skip,
-      take: params.take,
+      skip: params.skip || undefined,
+      take: params.take || undefined,
       include: { medias: true, tags: true },
       orderBy: { createdAt: 'desc' },
     });

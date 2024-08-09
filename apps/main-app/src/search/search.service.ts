@@ -36,7 +36,7 @@ export class SearchService {
           suggestion: {
             prefix: query,
             completion: {
-              field: 'name.completion',
+              field: 'profile.name.completion',
               fuzzy: {
                 fuzziness: 'auto',
               },
@@ -70,7 +70,7 @@ export class SearchService {
         query: {
           multi_match: {
             query,
-            fields: ['name', 'alias'],
+            fields: ['profile.name', 'profile.alias'],
             fuzziness: 'auto',
           },
         },
@@ -78,7 +78,6 @@ export class SearchService {
         size,
       },
     });
-    console.log(result);
     return result.hits.hits;
   }
 }

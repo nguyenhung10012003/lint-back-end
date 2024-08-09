@@ -1,6 +1,6 @@
 import { IncludeQuery, SkipQuery, TakeQuery } from '@app/common/types';
 import { Prisma } from '@prisma/prisma-main-client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsIn, IsNumber, IsOptional } from 'class-validator';
 
 export class PostQuery extends IncludeQuery implements TakeQuery, SkipQuery {
@@ -14,22 +14,16 @@ export class PostQuery extends IncludeQuery implements TakeQuery, SkipQuery {
   take?: number;
   @IsArray()
   @IsOptional()
-  @IsIn(
-    [
-      'author',
-      'comments',
-      'medias',
-      'tags',
-    ],
-    { each: true },
-  )
+  @IsIn(['author', 'comments', 'medias', 'tags'], { each: true })
   @Type(() => String)
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   include?: string[] = ['medias', 'tags'];
   orderField?: 'createdAt' | 'updatedAt';
   orderDirection?: 'asc' | 'desc';
   @IsArray()
   @IsOptional()
   @Type(() => String)
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   userId?: string[];
   @IsArray()
   @IsOptional()

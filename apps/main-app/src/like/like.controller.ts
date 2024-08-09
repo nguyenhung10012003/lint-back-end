@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,6 +14,7 @@ import {
 import { AccessTokenGuard } from '@app/common/guards';
 import { ErrorInterceptor } from '@app/common/interceptors/error.interceptor';
 import { CountQuery } from '@app/common/types';
+import { throwError } from 'rxjs';
 import { LikeService } from './like.service';
 import { LikeDto } from './model/like.dto';
 import { LikeQuery } from './model/like.query';
@@ -34,11 +36,28 @@ export class LikeController {
 
   @Delete()
   delete(@Req() req: any) {
-    return this.likeService.delete({
-      userId: req.user.userId,
-      id: req.body.id,
-      postId: req.body.postId,
-    });
+    // Delete the like of a post
+    if (req.body.postId) {
+      return this.likeService.delete({
+        userId_postId: {
+          userId: req.user.userId,
+          postId: req.body.postId,
+        },
+      });
+    }
+
+    // Delete the like of a comment
+    if (req.body.commentId) {
+      return this.likeService.delete({
+        userId_commentId: {
+          userId: req.user.userId,
+          commentId: req.body.commentId,
+        },
+      });
+    }
+
+    // return an error if the request is not included in the above cases
+    return throwError(() => new BadRequestException('Invalid request'));
   }
 
   @Get()
