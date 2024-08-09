@@ -4,8 +4,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -17,7 +19,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { $Enums } from '@prisma/prisma-main-client';
 import { AwsS3Service } from '../s3/aws-s3.service';
 import { fileAcceptReg } from '../utils/media-accept';
-import { PostDto } from './model/post.dto';
+import { PostDto, PostUpdateDto } from './model/post.dto';
 import { PostQuery } from './model/post.query';
 import { PostService } from './post.service';
 
@@ -79,6 +81,29 @@ export class PostController {
   @Get()
   async find(@Query() query: PostQuery) {
     return this.postService.findMany(query.extract());
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() post: PostUpdateDto) {
+    return this.postService.update({
+      where: { id },
+      data: {
+        ...post,
+        tags: post.tags && {
+          set: post.tags.map((tag) => ({
+            name: tag,
+          })),
+        },
+      },
+    });
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Req() req: any) {
+    return this.postService.delete({
+      id: id,
+      userId: req.user.userId,
+    });
   }
 
   @Get('search')

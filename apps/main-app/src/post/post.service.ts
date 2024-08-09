@@ -41,6 +41,24 @@ export class PostService {
     return post;
   }
 
+  async update(params: {
+    where: Prisma.PostWhereUniqueInput;
+    data: Prisma.PostUncheckedUpdateInput;
+    include?: Prisma.PostInclude;
+  }) {
+    return this.prisma.post.update({
+      where: params.where,
+      data: params.data,
+      include: params.include,
+    });
+  }
+
+  async delete(where: Prisma.PostWhereUniqueInput) {
+    return this.prisma.post.delete({
+      where,
+    });
+  }
+
   /**
    * @deprecated Use search module to search post instead
    * Search for posts
