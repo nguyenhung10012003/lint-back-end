@@ -2,10 +2,12 @@ import {
   BadGatewayException,
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   HttpException,
   Injectable,
   NestInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { Observable, catchError, throwError } from 'rxjs';
 import { ZodError } from 'zod';
@@ -55,17 +57,25 @@ class PrismaErrorHandler implements ErrorHandler {
         case 'P2002':
           return throwError(
             () =>
-              new BadRequestException({
+              new ConflictException({
                 error: ErrorType.DUPPLICATE,
                 message: 'Duplicate entry',
+              }),
+          );
+        case 'P2003':
+          return throwError(
+            () =>
+              new ConflictException({
+                message: 'Foreign key constraint failed',
               }),
           );
         case 'P2025':
           return throwError(
             () =>
-              new BadRequestException({
-                error: ErrorType.INVALID,
-                message: 'Invalid input data',
+              new NotFoundException({
+                error: ErrorType.NOTFOUND,
+                message:
+                  'An operation failed because it depends on one or more records that were required but not found.',
               }),
           );
         default:

@@ -84,9 +84,13 @@ export class PostController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() post: PostUpdateDto) {
+  async update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() post: PostUpdateDto,
+  ) {
     return this.postService.update({
-      where: { id },
+      where: { id, userId: req.user.userId },
       data: {
         ...post,
         tags: post.tags && {

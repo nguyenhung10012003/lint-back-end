@@ -51,6 +51,10 @@ export class FeedService {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        medias: true,
+        tags: true,
+      },
     });
 
     // If there are no posts, return the latest posts
