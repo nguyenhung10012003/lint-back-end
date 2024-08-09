@@ -29,7 +29,10 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.userService.findOne({ where: { id } });
+    return this.userService.findOne({
+      where: { id },
+      include: { profile: true },
+    });
   }
 
   @Post()

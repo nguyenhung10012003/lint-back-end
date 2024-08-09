@@ -1,5 +1,5 @@
 import { IncludeQuery, SkipQuery, TakeQuery } from '@app/common/types';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsIn, IsNumber, IsOptional } from 'class-validator';
 
 export class UserQuery extends IncludeQuery implements TakeQuery, SkipQuery {
@@ -17,10 +17,12 @@ export class UserQuery extends IncludeQuery implements TakeQuery, SkipQuery {
   @IsIn(['id', 'email', 'password', 'createdAt', 'updatedAt', 'profile'], {
     each: true,
   })
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   include?: string[] = ['profile'];
   @IsArray()
   @IsOptional()
   @Type(() => String)
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   id?: string[];
   extract() {
     return {

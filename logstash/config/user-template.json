@@ -22,31 +22,35 @@
     },
     "mappings": {
       "properties": {
-        "alias": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
+        "profile": {
+          "properties": {
+            "alias": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "suggest": {
+                  "type": "completion"
+                }
+              }
             },
-            "suggest": {
-              "type": "completion"
-            }
-          }
-        },
-        "name": {
-          "type": "text",
-          "analyzer": "edge_ngram_analyzer",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            },
-            "suggest": {
-              "type": "text"
-            },
-            "completion": {
-              "type": "completion"
+            "name": {
+              "type": "text",
+              "analyzer": "edge_ngram_analyzer",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                },
+                "suggest": {
+                  "type": "text"
+                },
+                "completion": {
+                  "type": "completion"
+                }
+              }
             }
           }
         }

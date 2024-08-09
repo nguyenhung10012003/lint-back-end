@@ -1,5 +1,5 @@
 import { SkipQuery, TakeQuery } from '@app/common/types';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsNumber, IsOptional } from 'class-validator';
 
 export class FeedQuery implements SkipQuery, TakeQuery {
@@ -15,6 +15,7 @@ export class FeedQuery implements SkipQuery, TakeQuery {
   @IsOptional()
   @Type(() => String)
   @IsArray()
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   idsNotIn?: string[];
 
   extract() {
