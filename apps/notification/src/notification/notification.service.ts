@@ -43,16 +43,12 @@ export class NotificationService implements OnModuleInit {
   }
 
   async handleNotification(key: Buffer, value: Buffer) {
-    const toStringKey = key.toString();
-    const type: NotificationType = getNotificationType(toStringKey);
-
-    const toStringValue = value.toString();
-    const parsedValue = JSON.parse(toStringValue);
-    const data: CreateNotificationDto = parsedValue;
+    const type: NotificationType = getNotificationType(key.toString());
+    const data: CreateNotificationDto = JSON.parse(value.toString());
     await this.upsert(data, type);
   }
 
-  async upsert(upsertDto: CreateNotificationDto, type: number) {
+  async upsert(upsertDto: CreateNotificationDto, type: NotificationType) {
     let notification: any;
     if (type === NotificationType.LIKE || type === NotificationType.COMMENT) {
       notification = await this.prismaService.notification.findFirst({

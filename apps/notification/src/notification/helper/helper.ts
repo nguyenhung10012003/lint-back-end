@@ -35,7 +35,7 @@ const translationDictionaries = [
 export const generateNotificationContent = (
   subjectName: string,
   subjectCount: number,
-  notificationType: number,
+  notificationType: NotificationType,
   diContent: string,
 ) => {
   const data = {
@@ -51,15 +51,15 @@ export const generateNotificationContent = (
   const highlights: Highlight[] = [];
 
   switch (notificationType) {
-    case 1:
+    case NotificationType.LIKE:
       text = templates.like(data);
       break;
 
-    case 2:
+    case NotificationType.COMMENT:
       text = templates.comment(data);
       break;
 
-    case 3:
+    case NotificationType.FOLLOW:
       text = templates.follow(data);
       break;
 
@@ -101,11 +101,11 @@ export function updateContentOnLanguage(language: Lang, content: any) {
 
 export function generateUrl(type: number, id?: string) {
   switch (type) {
-    case 1:
+    case NotificationType.LIKE:
       return `/post/${id}`;
-    case 2:
+    case NotificationType.COMMENT:
       return `/post/${id}`;
-    case 3:
+    case NotificationType.FOLLOW:
       return `/profile/${id}`;
     default:
       return '';
@@ -115,13 +115,13 @@ export function generateUrl(type: number, id?: string) {
 export function getNotificationType(stringKey: string): NotificationType {
   switch (stringKey) {
     case 'like':
-      return 1;
+      return NotificationType.LIKE;
     case 'comment':
-      return 2;
+      return NotificationType.COMMENT;
     case 'follow':
-      return 3;
+      return NotificationType.FOLLOW;
     default:
-      return 0;
+      return NotificationType.OTHER;
   }
 }
 

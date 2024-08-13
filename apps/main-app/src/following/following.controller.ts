@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { FollowingService } from './following.service';
 import { ErrorInterceptor } from '@app/common/interceptors/error.interceptor';
+import { FollowingQuery } from './model/following.query';
 
 @Controller('following')
 @UseGuards(AccessTokenGuard)
@@ -45,20 +46,10 @@ export class FollowingController {
   @Get()
   async find(
     @Query()
-    query: {
-      followerId?: string;
-      followingId?: string;
-      skip?: number;
-      take?: number;
-    },
+    query: FollowingQuery,
   ) {
-    return this.followingService.find({
-      where: {
-        followerId: query.followerId,
-        followingId: query.followingId,
-      },
-      skip: query.skip,
-      take: query.take,
+    return await this.followingService.find({
+      ...query.extract(),
     });
   }
 
@@ -66,8 +57,8 @@ export class FollowingController {
   async count(
     @Query()
     query: {
-      followerId: string;
-      followingId: string;
+      followerId?: string;
+      followingId?: string;
     },
   ) {
     return this.followingService.count(query);
