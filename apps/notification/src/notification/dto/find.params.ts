@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FindParams {
@@ -7,10 +8,13 @@ export class FindParams {
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   skip: number;
 
   @IsNumber()
+  @Type(() => Number)
   take: number;
 
+  @IsOptional()
   orderBy: 'asc' | 'desc';
 }

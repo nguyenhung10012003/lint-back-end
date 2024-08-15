@@ -23,7 +23,12 @@ export class UserService {
     where: Prisma.UserWhereUniqueInput;
     include?: Prisma.UserInclude;
   }): Promise<User | null> {
-    return this.prismaService.user.findUnique(params);
+    return this.prismaService.user.findUnique({
+      where: params.where,
+      include: {
+        profile: true,
+      },
+    });
   }
 
   async create(data: Prisma.UserCreateInput): Promise<User> {

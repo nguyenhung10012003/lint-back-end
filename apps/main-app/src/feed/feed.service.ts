@@ -46,6 +46,9 @@ export class FeedService {
           },
         ],
       },
+      include: {
+        medias: true,
+      },
       skip: params.skip,
       take: params.take,
       orderBy: {
@@ -69,6 +72,9 @@ export class FeedService {
         take: params.take,
         orderBy: {
           createdAt: 'desc',
+        },
+        include: {
+          medias: true,
         },
       });
     }

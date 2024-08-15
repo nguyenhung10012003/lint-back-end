@@ -36,28 +36,12 @@ export class LikeController {
 
   @Delete()
   delete(@Req() req: any) {
-    // Delete the like of a post
-    if (req.body.postId) {
-      return this.likeService.delete({
-        userId_postId: {
-          userId: req.user.userId,
-          postId: req.body.postId,
-        },
-      });
-    }
-
-    // Delete the like of a comment
-    if (req.body.commentId) {
-      return this.likeService.delete({
-        userId_commentId: {
-          userId: req.user.userId,
-          commentId: req.body.commentId,
-        },
-      });
-    }
-
-    // return an error if the request is not included in the above cases
-    return throwError(() => new BadRequestException('Invalid request'));
+    return this.likeService.delete({
+      userId: req.user.userId,
+      id: req.body.id,
+      postId: req.body.postId,
+      commentId: req.body.commentId,
+    });
   }
 
   @Get()
@@ -68,15 +52,20 @@ export class LikeController {
   @Get('count')
   count(@Query() query: CountQuery) {
     return this.likeService.count({
-      postId: query.postId + '',
+      postId: query.postId ? query.postId + '' : undefined,
+      commentId: query.commentId ? query.commentId + '' : undefined,
     });
   }
 
   @Get('exist')
-  exists(@Req() req: any, @Query() query: { userId: string; postId: string }) {
+  exists(
+    @Req() req: any,
+    @Query() query: { userId: string; postId: string; commentId: string },
+  ) {
     return this.likeService.exists({
       userId: req.user.userId,
       postId: query.postId,
+      commentId: query.commentId,
     });
   }
 }
