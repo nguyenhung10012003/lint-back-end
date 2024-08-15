@@ -1,24 +1,24 @@
 version: '3.9'
 services:
-  # main:
-  #   image: lint-microservice:latest
-  #   container_name: lint-main
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - kafka
-  #   command: ["yarn", "start:prod"]    
+  main:
+    image: lint-microservice:latest
+    container_name: lint-main
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    command: ["yarn", "start:prod"]    
 
-  # notification-service:
-  #   image: lint-microservice:latest
-  #   container_name: notification-service
-  #   ports:
-  #     - "5005:5005"
-  #     - "3001:3001"
-  #   depends_on:
-  #     - kafka
-  #   restart: on-failure:10
-  #   command: ["node" , "dist/apps/notification/src/main"]
+  notification-service:
+    image: lint-microservice:latest
+    container_name: notification-service
+    ports:
+      - "5005:5005"
+      - "3001:3001"
+    depends_on:
+      - kafka
+    restart: on-failure:10
+    command: ["node" , "dist/apps/notification/src/main"]
     
   elasticsearch:
     container_name: lint-es

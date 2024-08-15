@@ -1,28 +1,20 @@
 import * as Handlebars from 'handlebars';
-import { Lang } from '../types/lang';
+import { Lang } from '@app/common/types/lang';
 import { Content, Highlight } from '../dto/notification';
 import { NotificationType } from '../types/notification.type';
 
-Handlebars.registerHelper('gt', function (a: number, b: number) {
-  return a > b;
-});
-
-Handlebars.registerHelper('subtract', function (a: number, b: number) {
-  return a - b;
-});
-
 const templates = {
   like: Handlebars.compile(
-    '{{ subjectName }}{{#if (gt subjectCount 1) }} và {{ subtract subjectCount 1 }} người khác{{/if}} đã thích bài viết của bạn: "{{ diContent }}"',
+    '{{ subjectName }} đã thích bài viết của bạn{{#if diContent}}: "{{ diContent }}"{{/if}}',
   ),
   comment: Handlebars.compile(
-    '{{ subjectName }}{{#if (gt subjectCount 1) }} và {{ subtract subjectCount 1 }} người khác{{/if}} đã bình luận về bài viết của bạn: "{{ diContent }}"',
+    '{{ subjectName }} đã bình luận về bài viết của bạn{{#if diContent}}: "{{ diContent }}"{{/if}}',
   ),
   follow: Handlebars.compile('{{ subjectName }} đã theo dõi bạn'),
 };
 
 const translationDictionaries = [
-  {}, // Vietnamese
+  {},
   {
     ' đã bình luận về bài viết của bạn': ' commented on your post',
     ' đã thích bài viết của bạn': ' liked your post',
@@ -35,12 +27,10 @@ const translationDictionaries = [
 export const generateNotificationContent = (
   notificationType: NotificationType,
   subjectName: string,
-  subjectCount: number,
   diContent: string,
 ) => {
   const data = {
     subjectName: subjectName,
-    subjectCount: subjectCount,
     diContent:
       diContent && countWords(diContent) > 5
         ? getFirstWords(diContent, 5) + '...'
@@ -79,7 +69,7 @@ export const generateNotificationContent = (
   };
 };
 
-export function updateContentOnLanguage(language: Lang, content: any) {
+export function updateContentOnLanguage(language: Lang, content: Content) {
   if (language === 0) {
     return content;
   }
@@ -99,7 +89,7 @@ export function updateContentOnLanguage(language: Lang, content: any) {
   };
 }
 
-export function generateUrl(type: number, id?: string) {
+export function generateUrl(type: number, id: string) {
   switch (type) {
     case NotificationType.LIKE:
       return `/post/${id}`;
@@ -135,9 +125,13 @@ export function countWords(str: string): number {
   return str.trim().split(/\s+/).length;
 }
 
-export function updateSubject(content: Content) {
-  const subject = content.text.substring(0, content.highlights[0].length);
-  const replaceSubject = subject + ' và những người khác';
+export function updateSubject(content: Content, subjectCount: number) {
+  const subject = content.text.substring(
+    content.highlights[0].offset,
+    content.highlights[0].length,
+  );
+  const replaceSubject =
+    subject + (subjectCount > 2 ? ' và những người khác' : ' và 1 người khác');
   content.text = content.text.replace(subject, replaceSubject);
   return content;
 }

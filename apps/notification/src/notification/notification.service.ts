@@ -1,16 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindParams } from './dto/find.params';
 import { NotificationWhereUniqueDto } from './dto/delete.notification';
 import { UpdateStatusDto } from './dto/update.status';
 import { updateContentOnLanguage, updateSubject } from './helper/helper';
 import { UpsertNotificationDto } from './dto/upsert.notification';
-import { Lang } from './types/lang';
+import { Lang } from '@app/common/types/lang';
 
 @Injectable()
 export class NotificationService {
   constructor(private prismaService: PrismaService) {}
-
   async create(data: UpsertNotificationDto, lang: Lang = Lang.VN) {
     const notification = await this.prismaService.notification.create({
       data: {
@@ -37,10 +36,11 @@ export class NotificationService {
       },
     });
 
+    const maxSubjectsIdSize = 20;
     if (lastNotification) {
       if (
         !lastNotification.subjectsId.includes(data.subjectsId[0]) &&
-        lastNotification.subjectsId.length < 20 // max subjectsId length
+        lastNotification.subjectsId.length < maxSubjectsIdSize
       ) {
         data.subjectsId = [...lastNotification.subjectsId, ...data.subjectsId];
       } else {
@@ -51,8 +51,7 @@ export class NotificationService {
     }
 
     if (data.subjectsId && data.subjectsId.length > 1) {
-      console.log(data.content);
-      data.content = updateSubject(data.content);
+      data.content = updateSubject(data.content, data.subjectsId.length);
     }
 
     const upsertData = {
@@ -108,23 +107,16 @@ export class NotificationService {
 
   async updateStatus(updateStatusDto: UpdateStatusDto) {
     await this.prismaService.notification.update({
-      where: { id: updateStatusDto.id },
+      where: { id: updateStatusDto.id, userId: updateStatusDto.userId },
       data: { read: updateStatusDto.read },
     });
   }
 
   async delete(where: NotificationWhereUniqueDto): Promise<void> {
-    const notification = await this.prismaService.notification.findUnique({
-      where: { id: where.id },
-    });
-
-    if (!notification || notification.userId !== where.userId) {
-      throw new BadRequestException('Notification not found');
-    }
-
     await this.prismaService.notification.delete({
       where: {
         id: where.id,
+        userId: where.userId,
       },
     });
   }

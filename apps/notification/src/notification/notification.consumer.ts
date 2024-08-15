@@ -49,7 +49,6 @@ export class NotificationConsumer implements OnModuleInit {
       content: generateNotificationContent(
         type,
         data.subject.name,
-        1,
         data.diObject.name,
       ),
       subjectsId: [data.subject.id],
