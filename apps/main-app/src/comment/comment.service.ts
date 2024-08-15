@@ -41,7 +41,7 @@ export class CommentService {
         },
         diObject: {
           id: newComment.postId,
-          name: post.content,
+          name: newComment.content,
           imageUrl: null,
         },
       };

@@ -1,146 +1,84 @@
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindParams } from './dto/find.params';
-import { ResponseNotifications } from './dto/notification';
 import { NotificationWhereUniqueDto } from './dto/delete.notification';
 import { UpdateStatusDto } from './dto/update.status';
-import { ConsumerService } from '../kafka/consumer.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  generateNotificationContent,
-  generateUrl,
-  getNotificationType,
-  updateContentOnLanguage,
-} from './helper/helper';
-import { CreateNotificationDto } from './dto/create.notification';
-import { NotificationType } from './types/notification.type';
+import { updateContentOnLanguage, updateSubject } from './helper/helper';
+import { UpsertNotificationDto } from './dto/upsert.notification';
 import { Lang } from './types/lang';
 
 @Injectable()
-export class NotificationService implements OnModuleInit {
-  constructor(
-    private prismaService: PrismaService,
-    private consumerService: ConsumerService,
-    private eventEmitter: EventEmitter2,
-  ) {}
+export class NotificationService {
+  constructor(private prismaService: PrismaService) {}
 
-  async onModuleInit() {
-    await this.consumerService.consume(
-      { topics: ['notification'] },
-      {
-        eachMessage: async ({ message }) => {
-          const { key, value } = message;
-          try {
-            if (key && value) {
-              await this.handleNotification(key, value);
-            }
-          } catch (error) {
-            console.error(error);
-          }
+  async create(data: UpsertNotificationDto, lang: Lang = Lang.VN) {
+    const notification = await this.prismaService.notification.create({
+      data: {
+        ...data,
+        compiledContent: updateContentOnLanguage(lang, data.content),
+        lastModified: new Date(),
+      },
+    });
+    const unreadCount = await this.countUnread(data.userId);
+    return {
+      ...notification,
+      ...unreadCount,
+    };
+  }
+
+  async upsert(data: UpsertNotificationDto, lang: Lang = Lang.VN) {
+    const lastNotification = await this.prismaService.notification.findUnique({
+      where: {
+        type_diId_userId: {
+          type: data.type,
+          diId: data.diId,
+          userId: data.userId,
         },
       },
-    );
-  }
+    });
 
-  async handleNotification(key: Buffer, value: Buffer) {
-    const type: NotificationType = getNotificationType(key.toString());
-    const data: CreateNotificationDto = JSON.parse(value.toString());
-    await this.upsert(data, type);
-  }
-
-  async upsert(upsertDto: CreateNotificationDto, type: NotificationType) {
-    let notification: any;
-    if (type === NotificationType.LIKE || type === NotificationType.COMMENT) {
-      notification = await this.prismaService.notification.findFirst({
-        where: {
-          userId: upsertDto.userId,
-          postId: upsertDto.postId,
-          type: type,
-        },
-      });
-    }
-
-    let updateSubject = true;
-    if (notification) {
-      for (const subject of notification.subjects) {
-        if (subject.id === upsertDto.subject.id) {
-          updateSubject = false;
-        }
+    if (lastNotification) {
+      if (
+        !lastNotification.subjectsId.includes(data.subjectsId[0]) &&
+        lastNotification.subjectsId.length < 20 // max subjectsId length
+      ) {
+        data.subjectsId = [...lastNotification.subjectsId, ...data.subjectsId];
+      } else {
+        data.subjectsId = lastNotification.subjectsId;
       }
+    } else {
+      data.subjectsId = [data.subjectsId[0]];
     }
 
-    const subjectCount = notification
-      ? notification.subjectCount + updateSubject
-      : 1;
-    const content = generateNotificationContent(
-      upsertDto.subject.name ? upsertDto.subject.name : '',
-      subjectCount,
-      type,
-      upsertDto.diObject.name ? upsertDto.diObject.name : '',
-    );
+    if (data.subjectsId && data.subjectsId.length > 1) {
+      console.log(data.content);
+      data.content = updateSubject(data.content);
+    }
 
-    // TODO: implement user setting language
-    const data = {
-      type: type,
-      postId: upsertDto.postId,
-      diObject: upsertDto.diObject,
-      userId: upsertDto.userId,
-      content: JSON.stringify(content),
-      compiledContent: JSON.stringify(
-        updateContentOnLanguage(Lang.VN, content),
-      ),
-      subjects: notification
-        ? updateSubject
-          ? [...notification.subjects, upsertDto.subject]
-          : notification.subjects
-        : [upsertDto.subject],
-      subjectCount: subjectCount,
-      url:
-        type === NotificationType.FOLLOW
-          ? generateUrl(type, upsertDto.subject.id)
-          : generateUrl(type, upsertDto.postId),
-      read: false,
+    const upsertData = {
+      ...data,
+      compiledContent: updateContentOnLanguage(lang, data.content),
       lastModified: new Date(),
     };
-
-    let upsertNoti: any;
-    if (notification) {
-      upsertNoti = await this.prismaService.notification.update({
-        where: {
-          id: notification.id,
-        },
-        data: data,
-      });
-    } else {
-      upsertNoti = await this.prismaService.notification.create({
-        data: data,
-      });
-    }
-
-    const unreadCount = await this.prismaService.notification.count({
+    const notification = await this.prismaService.notification.upsert({
       where: {
-        userId: upsertDto.userId,
-        read: false,
+        type_diId_userId: {
+          type: data.type,
+          diId: data.diId,
+          userId: data.userId,
+        },
       },
+      create: upsertData,
+      update: upsertData,
     });
-
-    const lastSubject = upsertNoti.subjects[upsertNoti.subjects.length - 1];
-    this.eventEmitter.emit('notification', {
-      userId: upsertNoti.userId,
-      id: upsertNoti.id,
-      content: JSON.parse(
-        upsertNoti.compiledContent ? upsertNoti.compiledContent.toString() : '',
-      ),
-      subject: lastSubject,
-      diObject: upsertNoti.diObject,
-      url: upsertNoti.url,
-      read: upsertNoti.read,
-      lastModified: upsertNoti.lastModified,
-      unreadCount: unreadCount,
-    });
+    const unreadCount = await this.countUnread(data.userId);
+    return {
+      ...notification,
+      ...unreadCount,
+    };
   }
 
-  async findMany(param: FindParams): Promise<ResponseNotifications> {
+  async findMany(param: FindParams) {
     const notifications = await this.prismaService.notification.findMany({
       where: {
         userId: param.userId,
@@ -152,31 +90,7 @@ export class NotificationService implements OnModuleInit {
       },
     });
 
-    const totalNotifications = await this.prismaService.notification.count({
-      where: {
-        userId: param.userId,
-      },
-    });
-
-    const hasMore = param.skip + param.take < totalNotifications;
-
-    return {
-      notifications: notifications.map((notification) => {
-        return {
-          id: notification.id,
-          userId: notification.userId,
-          content: notification.compiledContent
-            ? JSON.parse(notification.compiledContent.toString())
-            : null,
-          diObject: notification.diObject,
-          subject: notification.subjects[notification.subjects.length - 1],
-          url: notification.url,
-          read: notification.read,
-          lastModified: notification.lastModified.toISOString(),
-        };
-      }),
-      hasMore: hasMore,
-    };
+    return notifications;
   }
 
   async countUnread(userId: string) {
@@ -193,15 +107,6 @@ export class NotificationService implements OnModuleInit {
   }
 
   async updateStatus(updateStatusDto: UpdateStatusDto) {
-    const existNoti = await this.prismaService.notification.findUnique({
-      where: {
-        id: updateStatusDto.id,
-      },
-    });
-    if (!existNoti || existNoti.userId !== updateStatusDto.userId) {
-      throw new BadRequestException('Notification not found');
-    }
-
     await this.prismaService.notification.update({
       where: { id: updateStatusDto.id },
       data: { read: updateStatusDto.read },
@@ -209,13 +114,11 @@ export class NotificationService implements OnModuleInit {
   }
 
   async delete(where: NotificationWhereUniqueDto): Promise<void> {
-    const isExist = await this.prismaService.notification.findUnique({
-      where: {
-        id: where.id,
-      },
+    const notification = await this.prismaService.notification.findUnique({
+      where: { id: where.id },
     });
 
-    if (!isExist || isExist.userId !== where.userId) {
+    if (!notification || notification.userId !== where.userId) {
       throw new BadRequestException('Notification not found');
     }
 

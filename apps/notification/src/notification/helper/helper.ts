@@ -1,6 +1,6 @@
 import * as Handlebars from 'handlebars';
 import { Lang } from '../types/lang';
-import { Highlight } from '../dto/notification';
+import { Content, Highlight } from '../dto/notification';
 import { NotificationType } from '../types/notification.type';
 
 Handlebars.registerHelper('gt', function (a: number, b: number) {
@@ -33,9 +33,9 @@ const translationDictionaries = [
 ];
 
 export const generateNotificationContent = (
+  notificationType: NotificationType,
   subjectName: string,
   subjectCount: number,
-  notificationType: NotificationType,
   diContent: string,
 ) => {
   const data = {
@@ -133,4 +133,11 @@ export function getFirstWords(text: string, numberOfWord: number): string {
 
 export function countWords(str: string): number {
   return str.trim().split(/\s+/).length;
+}
+
+export function updateSubject(content: Content) {
+  const subject = content.text.substring(0, content.highlights[0].length);
+  const replaceSubject = subject + ' và những người khác';
+  content.text = content.text.replace(subject, replaceSubject);
+  return content;
 }
