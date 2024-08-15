@@ -10,6 +10,12 @@ export class FollowingService {
     private readonly prismaService: PrismaService,
     private readonly producerService: ProducerService,
   ) {}
+
+  /**
+   * Create a follow
+   * @param params
+   * @returns a Follow model
+   */
   async create(params: {
     data: Prisma.FollowCreateInput;
     include?: Prisma.FollowInclude;
@@ -59,6 +65,11 @@ export class FollowingService {
     return this.prismaService.follow.delete({ where });
   }
 
+  /**
+   * Find many follows
+   * @param params
+   * @returns a Follow model array
+   */
   async find(params: {
     where: Prisma.FollowWhereInput;
     skip?: number;

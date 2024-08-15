@@ -39,13 +39,13 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-    "blacklist": {
+    "chat": {
       "type": "application",
-      "root": "apps/blacklist",
-      "entryFile": "main",
-      "sourceRoot": "apps/blacklist/src",
+      "root": "apps/chat",
+      "entryFile": "src/main",
+      "sourceRoot": "./",
       "compilerOptions": {
-        "tsConfigPath": "apps/blacklist/tsconfig.app.json"
+        "tsConfigPath": "apps/chat/tsconfig.app.json"
       }
     }
   }

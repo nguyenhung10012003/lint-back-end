@@ -1,9 +1,16 @@
-import { RefreshTokenGuard } from '@app/common/guards';
+import {
+  FacebookOauthGuard,
+  GoogleOauthGuard,
+  RefreshTokenGuard,
+} from '@app/common/guards';
 import { ErrorInterceptor } from '@app/common/interceptors/error.interceptor';
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Req,
+  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -28,5 +35,23 @@ export class AuthController {
   @Post('refresh-token')
   refreshToken(@Body() data: { refreshToken: string }) {
     return this.authService.refreshToken(data);
+  }
+
+  @Get('callback/google')
+  @UseGuards(GoogleOauthGuard)
+  async googleCallback(@Req() req: any, @Res() res: any) {
+    const token = await this.authService.oauthSignin(req.user);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/oauth?token=${encodeURIComponent(JSON.stringify(token))}`,
+    );
+  }
+
+  @Get('/callback/facebook')
+  @UseGuards(FacebookOauthGuard)
+  async facebookCallback(@Req() req: any, @Res() res: any) {
+    const token = await this.authService.oauthSignin(req.user);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/oauth?token=${encodeURIComponent(JSON.stringify(token))}`,
+    );
   }
 }

@@ -4,6 +4,6 @@ RUN rm -f /usr/share/logstash/pipeline/logstash.conf
 
 COPY config/ /usr/share/logstash/config/
 
-CMD ["logstash", "-f", "/usr/share/logstash/config/jdbc.conf"]
+CMD ["logstash", "-f", "/usr/share/logstash/config/logstash.conf"]
 
 

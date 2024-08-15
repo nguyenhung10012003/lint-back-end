@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { ConsumerService } from '../kafka/consumer.service';
+import { ConsumerService } from '@app/common/kafka/consumer.service';
 import {
   generateNotificationContent,
   generateUrl,

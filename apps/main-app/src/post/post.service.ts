@@ -41,6 +41,30 @@ export class PostService {
     return post;
   }
 
+  async update(params: {
+    where: Prisma.PostWhereUniqueInput;
+    data: Prisma.PostUncheckedUpdateInput;
+    include?: Prisma.PostInclude;
+  }) {
+    return this.prisma.post.update({
+      where: params.where,
+      data: params.data,
+      include: params.include,
+    });
+  }
+
+  async delete(where: Prisma.PostWhereUniqueInput) {
+    return this.prisma.post.delete({
+      where,
+    });
+  }
+
+  /**
+   * @deprecated Use search module to search post instead
+   * Search for posts
+   * @param params
+   * @returns Array of posts
+   */
   async search(params: {
     key?: string;
     skip?: number;
@@ -51,19 +75,21 @@ export class PostService {
     return this.prisma.post.findMany({
       where: {
         content: params.key && { contains: params.key },
-        tags: params.tags && {
-          some: {
-            name: {
-              in: params.tags,
-            },
-          },
-        },
+        tags: params.tags
+          ? {
+              some: {
+                name: {
+                  in: params.tags,
+                },
+              },
+            }
+          : undefined,
         id: params.idsNotIn && {
           notIn: params.idsNotIn,
         },
       },
-      skip: params.skip,
-      take: params.take,
+      skip: params.skip || undefined,
+      take: params.take || undefined,
       include: { medias: true, tags: true },
       orderBy: { createdAt: 'desc' },
     });

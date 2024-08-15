@@ -1,5 +1,5 @@
 import * as Handlebars from 'handlebars';
-import { Lang } from '@app/common/types/lang';
+import { Lang } from '../types/lang';
 import { Content, Highlight } from '../dto/notification';
 import { NotificationType } from '../types/notification.type';
 

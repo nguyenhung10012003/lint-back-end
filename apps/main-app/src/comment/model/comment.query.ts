@@ -1,5 +1,5 @@
 import { IncludeQuery, SkipQuery, TakeQuery } from '@app/common/types';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsArray, IsIn, IsNumber, IsOptional } from 'class-validator';
 
 export class CommentQuery extends IncludeQuery implements TakeQuery, SkipQuery {
@@ -15,6 +15,7 @@ export class CommentQuery extends IncludeQuery implements TakeQuery, SkipQuery {
   @Type(() => String)
   @IsArray()
   @IsIn(['likes', 'author', 'post', 'replies', 'comment'], { each: true })
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   include?: string[] = ['likes', 'author'];
   @IsOptional()
   @Type(() => String)

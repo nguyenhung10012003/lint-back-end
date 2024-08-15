@@ -5,7 +5,7 @@ import { NotificationWhereUniqueDto } from './dto/delete.notification';
 import { UpdateStatusDto } from './dto/update.status';
 import { updateContentOnLanguage, updateSubject } from './helper/helper';
 import { UpsertNotificationDto } from './dto/upsert.notification';
-import { Lang } from '@app/common/types/lang';
+import { Lang } from './types/lang';
 
 @Injectable()
 export class NotificationService {
