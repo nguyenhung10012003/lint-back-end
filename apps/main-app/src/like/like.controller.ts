@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,6 +14,7 @@ import {
 import { AccessTokenGuard } from '@app/common/guards';
 import { ErrorInterceptor } from '@app/common/interceptors/error.interceptor';
 import { CountQuery } from '@app/common/types';
+import { throwError } from 'rxjs';
 import { LikeService } from './like.service';
 import { LikeDto } from './model/like.dto';
 import { LikeQuery } from './model/like.query';

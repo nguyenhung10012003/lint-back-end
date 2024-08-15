@@ -57,4 +57,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 #logstash config
 
-/logstash/config/jdbc.conf
+/logstash/config/*.conf
