@@ -46,9 +46,6 @@ export class FeedService {
           },
         ],
       },
-      include: {
-        medias: true,
-      },
       skip: params.skip,
       take: params.take,
       orderBy: {
