@@ -9,14 +9,19 @@ datasource db {
 }
 
 model Room {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  name       String?
-  members    String[]
-  private    Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  lastActive DateTime?
-  messages   Message[]
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  members       String[]
+  isGroup       Boolean       @default(false)
+  thumbnail     String?
+  createdBy     String
+  private       Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  lastMessage   Message?      @relation(fields: [lastMessageId], references: [id])
+  lastMessageId String?       @unique @db.ObjectId
+  messages      Message[]     @relation(name: "RoomMessage")
+  subcription   Subcription[]
 
   @@index([members])
 }
@@ -26,18 +31,53 @@ model Message {
   roomId      String      @db.ObjectId
   senderId    String
   content     String
-  messageType MessageType
+  messageType MessageType @default(TEXT)
   attachment  String?
   readBy      String[]
   deleted     Boolean     @default(false)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  room        Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
   replies     Message[]   @relation("RepliesTo")
   parentId    String?     @db.ObjectId
   replyTo     Message?    @relation("RepliesTo", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lastInRoom  Room?
+  room        Room        @relation(name: "RoomMessage", fields: [roomId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([roomId, createdAt])
+}
+
+model Subcription {
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String
+  roomId            String              @db.ObjectId
+  lastMessageReadId String?             @db.ObjectId
+  room              Room                @relation(fields: [roomId], references: [id])
+  setting           NotificationSetting
+
+  @@unique([userId, roomId])
+}
+
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  clientId  String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Active {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String
+  isActive   Boolean  @default(true)
+  lastActive DateTime @default(now())
+
+  @@unique([userId])
+}
+
+type NotificationSetting {
+  mute Boolean @default(false)
+  push Boolean @default(true)
 }
 
 enum MessageType {

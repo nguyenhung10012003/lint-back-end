@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class RoomService {
   constructor(private readonly prisma: PrismaService) {}
+  
   async createRoom(params: Prisma.RoomCreateArgs) {
     return this.prisma.room.create(params);
   }
@@ -14,7 +15,7 @@ export class RoomService {
   }
 
   async getRoom(params: Prisma.RoomFindUniqueArgs) {
-    return this.prisma.room.findUnique(params);
+    return this.prisma.room.findUniqueOrThrow(params);
   }
 
   async updateRoom(params: Prisma.RoomUpdateArgs) {

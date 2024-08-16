@@ -38,16 +38,13 @@ export class RoomController {
       },
       include: query.withLastMessage
         ? {
-            messages: {
-              orderBy: {
-                createdAt: 'desc',
-              },
-              take: 1,
-            },
+            lastMessage: true,
           }
         : undefined,
       orderBy: {
-        lastActive: 'desc',
+        lastMessage: {
+          createdAt: 'desc',
+        },
       },
     });
   }

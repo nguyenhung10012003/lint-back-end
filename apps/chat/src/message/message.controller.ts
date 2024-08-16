@@ -46,6 +46,20 @@ export class MessageController {
           room: {
             create: {
               members: [...(body.members || []), req.user.userId],
+              createdBy: req.user.userId,
+              subcription: {
+                createMany: {
+                  data: body.members
+                    ? body.members.map((userId) => ({
+                        userId,
+                        setting: {
+                          push: true,
+                          mute: false,
+                        },
+                      }))
+                    : [],
+                },
+              },
             },
           },
         },

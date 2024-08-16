@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build && nest build notification",
+    "build": "nest build && nest build notification && nest build chat",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "prisma:install:main": "npx prisma migrate dev --schema prisma/main-app/schema.prisma",
     "prisma:install:notification": "npx prisma db push --schema=./prisma/notification/schema.prisma",
