@@ -1,27 +1,27 @@
 services:
-  main:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: lint-microservice:latest
-    container_name: lint-main
-    ports:
-      - "8000:8000"
-    depends_on:
-      - kafka
-    command: ["yarn", "start:prod"]    
+  # main:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: lint-microservice:latest
+  #   container_name: lint-main
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - kafka
+  #   command: ["yarn", "start:prod"]    
 
-  notification-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: lint-microservice:latest
-    container_name: notification-service
-    ports:
-      - "8001:8001"
-    depends_on:
-      - kafka
-    command: ["node" , "dist/apps/notification/src/main"]
+  # notification-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: lint-microservice:latest
+  #   container_name: notification-service
+  #   ports:
+  #     - "8001:8001"
+  #   depends_on:
+  #     - kafka
+  #   command: ["node" , "dist/apps/notification/src/main"]
     
   elasticsearch:
     container_name: lint-es

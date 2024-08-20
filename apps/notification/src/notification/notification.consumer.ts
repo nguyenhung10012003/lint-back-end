@@ -67,7 +67,7 @@ export class NotificationConsumer implements OnModuleInit {
     } else {
       notification = await this.notificationService.create(upsertData);
     }
-
+    //TODO: implement throttling
     this.eventEmitter.emit('notification', notification);
   }
 }

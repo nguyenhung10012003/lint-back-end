@@ -5,7 +5,7 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 export class FollowingQuery implements TakeQuery, SkipQuery {
   @IsOptional()
   @IsString()
-  variant: 'followers' | 'following';
+  variant: 'followers' | 'followings';
 
   @IsOptional()
   @IsString()
@@ -28,6 +28,10 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
   @IsString()
   userId?: string;
 
+  @IsOptional()
+  @IsString()
+  accepted?: 'true' | 'false';
+
   extract() {
     const condition = {
       profile: {
@@ -46,16 +50,20 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
       },
     };
 
-    this.where =
-      this.variant === 'followers'
-        ? {
-            followingId: this.userId,
-            follower: condition,
-          }
-        : {
-            followerId: this.userId,
-            following: condition,
-          };
+    if (!this.where) {
+      this.where =
+        this.variant === 'followers'
+          ? {
+              accepted: this.accepted ? this.accepted == 'true' : undefined,
+              followingId: this.userId,
+              follower: condition,
+            }
+          : {
+              accepted: this.accepted ? this.accepted == 'true' : undefined,
+              followerId: this.userId,
+              following: condition,
+            };
+    }
 
     return {
       skip: this.skip,
@@ -69,6 +77,8 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
                   profile: true,
                 },
               },
+              accepted: true,
+              createdAt: true,
             }
           : {
               id: true,
@@ -77,6 +87,8 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
                   profile: true,
                 },
               },
+              accepted: true,
+              createdAt: true,
             },
       where: this.where,
     };

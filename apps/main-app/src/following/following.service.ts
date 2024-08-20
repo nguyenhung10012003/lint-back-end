@@ -20,6 +20,16 @@ export class FollowingService {
     data: Prisma.FollowCreateInput;
     include?: Prisma.FollowInclude;
   }) {
+    const following = await this.prismaService.user.findUnique({
+      where: {
+        id: params.data.following.connect?.id,
+      },
+    });
+
+    if (following?.isPrivate) {
+      params.data.accepted = false;
+    }
+
     const follow = await this.prismaService.follow.create(params);
 
     const profile = this.prismaService.profile.findUnique({
@@ -51,7 +61,7 @@ export class FollowingService {
         topic: 'notification',
         messages: [
           {
-            key: 'follow',
+            key: following?.isPrivate ? 'follow_request' : 'follow',
             value: JSON.stringify(payload),
           },
         ],
@@ -77,6 +87,7 @@ export class FollowingService {
     orderBy?: Prisma.FollowOrderByWithAggregationInput;
     include?: Prisma.FollowInclude;
   }) {
+    console.log(params);
     return this.prismaService.follow.findMany(params);
   }
 
@@ -84,5 +95,14 @@ export class FollowingService {
     return {
       count: await this.prismaService.follow.count({ where }),
     };
+  }
+
+  async accept(params: { where: Prisma.FollowWhereUniqueInput }) {
+    await this.prismaService.follow.update({
+      where: params.where,
+      data: {
+        accepted: true,
+      },
+    });
   }
 }

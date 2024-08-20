@@ -45,7 +45,6 @@ export class UserService {
     where: Prisma.UserWhereUniqueInput;
     data: Prisma.UserUpdateInput;
   }): Promise<User> {
-    UserCreateInput.parse(params.data);
     return this.prismaService.user.update(params);
   }
 }
