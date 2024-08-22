@@ -85,7 +85,7 @@ export class NotificationService {
       skip: param.skip,
       take: param.take,
       orderBy: {
-        createdAt: param.orderBy == 'asc' ? 'asc' : 'desc',
+        lastModified: param.orderBy == 'asc' ? 'asc' : 'desc',
       },
     });
 

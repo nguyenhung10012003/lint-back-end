@@ -52,7 +52,7 @@ export class FollowingService {
           imageUrl: profile.avatar,
         },
         diObject: {
-          id: follow.followingId,
+          id: follow.id,
           name: null,
           imageUrl: null,
         },
@@ -87,7 +87,6 @@ export class FollowingService {
     orderBy?: Prisma.FollowOrderByWithAggregationInput;
     include?: Prisma.FollowInclude;
   }) {
-    console.log(params);
     return this.prismaService.follow.findMany(params);
   }
 

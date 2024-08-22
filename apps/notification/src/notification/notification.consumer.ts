@@ -1,14 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { ConsumerService } from '@app/common/kafka/consumer.service';
-import {
-  generateNotificationContent,
-  generateUrl,
-  getNotificationType,
-} from './helper/helper';
+import { generateNotificationContent, generateUrl } from './helper/helper';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { NotificationType } from './types/notification.type';
 import { UpsertNotificationDto } from './dto/upsert.notification';
+import { $Enums } from '@prisma/prisma-notification-client';
 
 @Injectable()
 export class NotificationConsumer implements OnModuleInit {
@@ -36,7 +32,7 @@ export class NotificationConsumer implements OnModuleInit {
   }
 
   async onMessage(key: Buffer, value: Buffer) {
-    const type = getNotificationType(key.toString());
+    const type = $Enums.NotificationType[key.toString().toUpperCase()];
     const data = JSON.parse(value.toString());
 
     // Prevent user from receiving notification about their own action
@@ -44,7 +40,7 @@ export class NotificationConsumer implements OnModuleInit {
 
     const upsertData: UpsertNotificationDto = {
       type,
-      diId: data.postId || data.subject.id,
+      diId: data.diObject.id,
       userId: data.userId,
       content: generateNotificationContent(
         type,
@@ -56,17 +52,15 @@ export class NotificationConsumer implements OnModuleInit {
       diUrl: data.diObject.imageUrl,
       url: generateUrl(
         type,
-        type === NotificationType.FOLLOW ? data.subject.id : data.postId,
+        ['FOLLOW', 'FOLLOW_REQUEST'].includes(type)
+          ? data.subject.id
+          : data.postId,
       ),
       read: false,
     };
 
-    let notification = {};
-    if (type === NotificationType.LIKE || type === NotificationType.COMMENT) {
-      notification = await this.notificationService.upsert(upsertData);
-    } else {
-      notification = await this.notificationService.create(upsertData);
-    }
+    const notification = await this.notificationService.upsert(upsertData);
+
     //TODO: implement throttling
     this.eventEmitter.emit('notification', notification);
   }

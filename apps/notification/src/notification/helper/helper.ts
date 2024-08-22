@@ -1,31 +1,11 @@
-import * as Handlebars from 'handlebars';
 import { Lang } from '../types/lang';
 import { Content, Highlight } from '../dto/notification';
-import { NotificationType } from '../types/notification.type';
-
-const templates = {
-  like: Handlebars.compile(
-    '{{ subjectName }} đã thích bài viết của bạn{{#if diContent}}: "{{ diContent }}"{{/if}}',
-  ),
-  comment: Handlebars.compile(
-    '{{ subjectName }} đã bình luận về bài viết của bạn{{#if diContent}}: "{{ diContent }}"{{/if}}',
-  ),
-  follow: Handlebars.compile('{{ subjectName }} đã theo dõi bạn'),
-};
-
-const translationDictionaries = [
-  {},
-  {
-    ' đã bình luận về bài viết của bạn': ' commented on your post',
-    ' đã thích bài viết của bạn': ' liked your post',
-    ' đã theo dõi bạn': ' started following you',
-    ' và': ' and',
-    ' người khác': ' others',
-  },
-];
+import { template } from './template';
+import { dictionary } from './dictionary';
+import { $Enums } from '@prisma/prisma-notification-client';
 
 export const generateNotificationContent = (
-  notificationType: NotificationType,
+  type: $Enums.NotificationType,
   subjectName: string,
   diContent: string,
 ) => {
@@ -40,17 +20,20 @@ export const generateNotificationContent = (
   let text = '';
   const highlights: Highlight[] = [];
 
-  switch (notificationType) {
-    case NotificationType.LIKE:
-      text = templates.like(data);
+  switch (type) {
+    case 'LIKE':
+      text = template.like(data);
       break;
 
-    case NotificationType.COMMENT:
-      text = templates.comment(data);
+    case 'COMMENT':
+      text = template.comment(data);
       break;
 
-    case NotificationType.FOLLOW:
-      text = templates.follow(data);
+    case 'FOLLOW':
+      text = template.follow(data);
+      break;
+    case 'FOLLOW_REQUEST':
+      text = template.followRequest(data);
       break;
 
     default:
@@ -77,9 +60,7 @@ export function updateContentOnLanguage(language: Lang, content: Content) {
   let translatedText = content.text.split(':')[0];
   const notTranslatedText = content.text.split(':')[1];
 
-  for (const [key, value] of Object.entries(
-    translationDictionaries[language],
-  )) {
+  for (const [key, value] of Object.entries(dictionary[language])) {
     const regex = new RegExp(key, 'g');
     translatedText = translatedText.replace(regex, value);
   }
@@ -89,29 +70,18 @@ export function updateContentOnLanguage(language: Lang, content: Content) {
   };
 }
 
-export function generateUrl(type: number, id: string) {
+export function generateUrl(type: $Enums.NotificationType, id: string) {
   switch (type) {
-    case NotificationType.LIKE:
+    case 'LIKE':
       return `/post/${id}`;
-    case NotificationType.COMMENT:
+    case 'COMMENT':
       return `/post/${id}`;
-    case NotificationType.FOLLOW:
+    case 'FOLLOW':
+      return `/profile/${id}`;
+    case 'FOLLOW_REQUEST':
       return `/profile/${id}`;
     default:
       return '';
-  }
-}
-
-export function getNotificationType(stringKey: string): NotificationType {
-  switch (stringKey) {
-    case 'like':
-      return NotificationType.LIKE;
-    case 'comment':
-      return NotificationType.COMMENT;
-    case 'follow':
-      return NotificationType.FOLLOW;
-    default:
-      return NotificationType.OTHER;
   }
 }
 

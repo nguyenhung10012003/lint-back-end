@@ -5,7 +5,7 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 export class FollowingQuery implements TakeQuery, SkipQuery {
   @IsOptional()
   @IsString()
-  variant: 'followers' | 'followings';
+  variant?: 'followers' | 'followings';
 
   @IsOptional()
   @IsString()
@@ -75,6 +75,7 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
               follower: {
                 select: {
                   profile: true,
+                  id: true,
                 },
               },
               accepted: true,
@@ -85,6 +86,7 @@ export class FollowingQuery implements TakeQuery, SkipQuery {
               following: {
                 select: {
                   profile: true,
+                  id: true,
                 },
               },
               accepted: true,

@@ -1,9 +1,10 @@
-import { NotificationType } from '../types/notification.type';
-import { IsString, IsOptional, IsNumber, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsObject } from 'class-validator';
+import { $Enums } from '@prisma/prisma-notification-client';
+import { Type } from 'class-transformer';
 
 export class UpsertNotificationDto {
-  @IsNumber()
-  type: NotificationType;
+  @Type(() => String)
+  type: $Enums.NotificationType;
 
   @IsString()
   @IsOptional()
