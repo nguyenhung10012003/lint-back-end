@@ -5,6 +5,8 @@ import { generateNotificationContent, generateUrl } from './helper/helper';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UpsertNotificationDto } from './dto/upsert.notification';
 import { $Enums } from '@prisma/prisma-notification-client';
+import Redis from 'ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 
 @Injectable()
 export class NotificationConsumer implements OnModuleInit {
@@ -12,6 +14,7 @@ export class NotificationConsumer implements OnModuleInit {
     private readonly notificationService: NotificationService,
     private readonly consumerService: ConsumerService,
     private readonly eventEmitter: EventEmitter2,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
   async onModuleInit() {
     await this.consumerService.consume(
@@ -61,7 +64,17 @@ export class NotificationConsumer implements OnModuleInit {
 
     const notification = await this.notificationService.upsert(upsertData);
 
-    //TODO: implement throttling
-    this.eventEmitter.emit('notification', notification);
+    const notPush = await this.redis.get(
+      `${notification.type}_${notification.diId}_${notification.diId}`,
+    );
+    if (!notPush) {
+      this.eventEmitter.emit('notification', notification);
+      await this.redis.set(
+        `${notification.type}_${notification.diId}_${notification.diId}`,
+        '1',
+        'EX',
+        60 * 10, // 10 minutes
+      );
+    }
   }
 }

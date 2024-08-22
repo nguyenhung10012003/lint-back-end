@@ -10,7 +10,7 @@ import { Lang } from './types/lang';
 @Injectable()
 export class NotificationService {
   constructor(private prismaService: PrismaService) {}
-  async create(data: UpsertNotificationDto, lang: Lang = Lang.VN) {
+  async create(data: UpsertNotificationDto, lang: Lang = Lang.VI) {
     const notification = await this.prismaService.notification.create({
       data: {
         ...data,
@@ -25,7 +25,7 @@ export class NotificationService {
     };
   }
 
-  async upsert(data: UpsertNotificationDto, lang: Lang = Lang.VN) {
+  async upsert(data: UpsertNotificationDto, lang: Lang = Lang.VI) {
     const lastNotification = await this.prismaService.notification.findUnique({
       where: {
         type_diId_userId: {
@@ -119,5 +119,37 @@ export class NotificationService {
         userId: where.userId,
       },
     });
+  }
+
+  async changeLanguage({ lang, userId }: { lang: Lang; userId: string }) {
+    const notifications = await this.prismaService.notification.findMany({
+      where: {
+        userId: userId,
+      },
+    });
+    for (const notification of notifications) {
+      this.prismaService.notification.update({
+        where: { id: notification.id },
+        data: {
+          compiledContent: updateContentOnLanguage(lang, notification.content),
+        },
+      });
+    }
+    // this.prismaService.$runCommandRaw({
+    //   update: 'Notification',
+    //   updates: [
+    //     {
+    //       q: { userId: userId },
+    //       u: {
+    //         $set: {
+    //           compiledContent: JSON.stringify(
+    //             updateContentOnLanguage(lang, JSON.parse('$v.content')),
+    //           ),
+    //         },
+    //       },
+    //       multi: true,
+    //     },
+    //   ],
+    // });
   }
 }

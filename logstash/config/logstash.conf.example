@@ -2,16 +2,16 @@ input {
   jdbc {
     jdbc_driver_library => "/usr/share/logstash/config/mysql-connector-j-9.0.0.jar"
     jdbc_driver_class => "com.mysql.cj.jdbc.Driver"
-    jdbc_connection_string => "jdbc:mysql://localhost:3307/lint-main"
-    jdbc_user => "root"
-    jdbc_password => "password"
+    jdbc_connection_string => "{url}"
+    jdbc_user => "{user}"
+    jdbc_password => "{pass}"
     jdbc_paging_enabled => true
     schedule => "*/5 * * * * *"
     tracking_column => "ts_updatedat"
     clean_run => true
     use_column_value => true
     tracking_column_type => "numeric"
-    statement => "SELECT User.*, Profile.name, unix_timestamp(GREATEST(User.updatedAt, Profile.updatedAt)) as ts_updatedat from User join Profile on User.id  = Profile.userId WHERE unix_timestamp(GREATEST(User.updatedAt, Profile.updatedAt)) > :sql_last_value ORDER BY ts_updatedAt ASC"
+    statement => "{statement}"
   }
 }
 filter {

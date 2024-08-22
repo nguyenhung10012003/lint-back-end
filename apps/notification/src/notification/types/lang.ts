@@ -1,5 +1,4 @@
 export enum Lang {
-  VN = 0,
-  US = 1,
-  UNRECOGNIZED = -1,
+  VI = 0,
+  EN = 1,
 }

@@ -12,8 +12,8 @@ export const generateNotificationContent = (
   const data = {
     subjectName: subjectName,
     diContent:
-      diContent && countWords(diContent) > 5
-        ? getFirstWords(diContent, 5) + '...'
+      diContent && diContent.length > 30
+        ? diContent.substring(0, 30) + '...'
         : diContent,
   };
 
@@ -53,7 +53,7 @@ export const generateNotificationContent = (
 };
 
 export function updateContentOnLanguage(language: Lang, content: Content) {
-  if (language === 0) {
+  if (language === Lang.VI) {
     return content;
   }
   const highlights = content.highlights;
@@ -64,8 +64,11 @@ export function updateContentOnLanguage(language: Lang, content: Content) {
     const regex = new RegExp(key, 'g');
     translatedText = translatedText.replace(regex, value);
   }
+  const text = notTranslatedText
+    ? translatedText + ':' + notTranslatedText
+    : translatedText;
   return {
-    text: translatedText + ':' + notTranslatedText,
+    text: text,
     highlights: highlights,
   };
 }
@@ -89,10 +92,6 @@ export function getFirstWords(text: string, numberOfWord: number): string {
   const words = text.split(' ');
   const firstWords = words.slice(0, numberOfWord).join(' ');
   return firstWords;
-}
-
-export function countWords(str: string): number {
-  return str.trim().split(/\s+/).length;
 }
 
 export function updateSubject(content: Content, subjectCount: number) {
