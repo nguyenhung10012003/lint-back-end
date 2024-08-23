@@ -22,6 +22,7 @@ model User {
   likes       Like[]
   blacklist   Blacklist?   @relation("blacklist_owner")
   inBlacklist Blacklist[]  @relation("blacklist_user")
+  isPrivate   Boolean      @default(false)
 }
 
 model Profile {
@@ -51,6 +52,7 @@ model Follow {
   id          String   @id @default(cuid())
   followerId  String
   followingId String
+  accepted    Boolean  @default(true)
   follower    User     @relation("follower_user", fields: [followerId], references: [id])
   following   User     @relation("following_user", fields: [followingId], references: [id])
   createdAt   DateTime @default(now())

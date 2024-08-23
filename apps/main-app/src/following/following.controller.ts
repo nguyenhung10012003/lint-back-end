@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Post,
+  Patch,
   Query,
   Req,
   UseGuards,
@@ -36,11 +37,15 @@ export class FollowingController {
 
   @Delete()
   async unfollow(@Req() req: any) {
-    return this.followingService.delete({
-      id: req.body.id,
-      followerId: req.body.followerId,
-      followingId: req.body.followingId,
-    });
+    const where = req.body.id
+      ? { id: req.body.id }
+      : {
+          followerId_followingId: {
+            followerId: req.user.userId,
+            followingId: req.body.followingId,
+          },
+        };
+    return this.followingService.delete(where);
   }
 
   @Get()
@@ -59,8 +64,19 @@ export class FollowingController {
     query: {
       followerId?: string;
       followingId?: string;
+      accepted?: string;
     },
   ) {
-    return this.followingService.count(query);
+    const accepted = query.accepted === 'false' ? false : true;
+    return this.followingService.count({ ...query, accepted });
+  }
+
+  @Patch('/accept')
+  async accept(@Req() req: any) {
+    return this.followingService.accept({
+      where: {
+        id: req.body.id,
+      },
+    });
   }
 }

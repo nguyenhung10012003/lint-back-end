@@ -38,6 +38,7 @@ export class FeedService {
                   followers: {
                     some: {
                       followerId: params.userId,
+                      accepted: true,
                     },
                   },
                 },

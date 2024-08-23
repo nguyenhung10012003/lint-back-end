@@ -19,7 +19,6 @@ services:
     container_name: lint-notification
     ports:
       - "8001:8001"
-      - "3001:3001"
     depends_on:
       - kafka
     command: ["node" , "dist/apps/notification/src/main"]
@@ -81,6 +80,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+  
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    
 
 volumes:
   elasticvolume:

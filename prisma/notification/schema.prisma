@@ -10,25 +10,42 @@ datasource db {
 
 model Notification {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  type          Int
-  postId        String?
+
+  type          NotificationType
+  diId          String
   userId        String
-  content       Json
-  compiledContent Json
-  diObject      Obj?
-  subjects      Obj[] 
-  subjectCount  Int
+
+  content       Content
+  compiledContent Content
+
+  subjectsId    String[]
+
+  subjectUrl    String?
+  diUrl         String?
   url           String
+
   read          Boolean
   lastModified  DateTime
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([userId, postId, type])
+  @@unique([type, diId, userId])
 }
 
-type Obj {
-  id       String
-  name     String?
-  imageUrl String?
+type Content {
+  text          String
+  highlights    Highlight[]
+}
+
+type Highlight {
+  length        Int
+  offset        Int
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  FOLLOW_REQUEST
+  FOLLOW_ACCEPT
 }

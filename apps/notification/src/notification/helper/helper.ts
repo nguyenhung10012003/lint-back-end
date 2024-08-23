@@ -1,66 +1,39 @@
-import * as Handlebars from 'handlebars';
 import { Lang } from '../types/lang';
-import { Highlight } from '../dto/notification';
-import { NotificationType } from '../types/notification.type';
-
-Handlebars.registerHelper('gt', function (a: number, b: number) {
-  return a > b;
-});
-
-Handlebars.registerHelper('subtract', function (a: number, b: number) {
-  return a - b;
-});
-
-const templates = {
-  like: Handlebars.compile(
-    '{{ subjectName }}{{#if (gt subjectCount 1) }} và {{ subtract subjectCount 1 }} người khác{{/if}} đã thích bài viết của bạn: "{{ diContent }}"',
-  ),
-  comment: Handlebars.compile(
-    '{{ subjectName }}{{#if (gt subjectCount 1) }} và {{ subtract subjectCount 1 }} người khác{{/if}} đã bình luận về bài viết của bạn: "{{ diContent }}"',
-  ),
-  follow: Handlebars.compile('{{ subjectName }} đã theo dõi bạn'),
-};
-
-const translationDictionaries = [
-  {}, // Vietnamese
-  {
-    ' đã bình luận về bài viết của bạn': ' commented on your post',
-    ' đã thích bài viết của bạn': ' liked your post',
-    ' đã theo dõi bạn': ' started following you',
-    ' và': ' and',
-    ' người khác': ' others',
-  },
-];
+import { Content, Highlight } from '../dto/notification';
+import { template } from './template';
+import { dictionary } from './dictionary';
+import { $Enums } from '@prisma/prisma-notification-client';
 
 export const generateNotificationContent = (
+  type: $Enums.NotificationType,
   subjectName: string,
-  subjectCount: number,
-  notificationType: NotificationType,
   diContent: string,
 ) => {
   const data = {
     subjectName: subjectName,
-    subjectCount: subjectCount,
     diContent:
-      diContent && countWords(diContent) > 5
-        ? getFirstWords(diContent, 5) + '...'
+      diContent && diContent.length > 30
+        ? diContent.substring(0, 30) + '...'
         : diContent,
   };
 
   let text = '';
   const highlights: Highlight[] = [];
 
-  switch (notificationType) {
-    case NotificationType.LIKE:
-      text = templates.like(data);
+  switch (type) {
+    case 'LIKE':
+      text = template.like(data);
       break;
 
-    case NotificationType.COMMENT:
-      text = templates.comment(data);
+    case 'COMMENT':
+      text = template.comment(data);
       break;
 
-    case NotificationType.FOLLOW:
-      text = templates.follow(data);
+    case 'FOLLOW':
+      text = template.follow(data);
+      break;
+    case 'FOLLOW_REQUEST':
+      text = template.followRequest(data);
       break;
 
     default:
@@ -79,49 +52,39 @@ export const generateNotificationContent = (
   };
 };
 
-export function updateContentOnLanguage(language: Lang, content: any) {
-  if (language === 0) {
+export function updateContentOnLanguage(language: Lang, content: Content) {
+  if (language === Lang.VI) {
     return content;
   }
   const highlights = content.highlights;
   let translatedText = content.text.split(':')[0];
   const notTranslatedText = content.text.split(':')[1];
 
-  for (const [key, value] of Object.entries(
-    translationDictionaries[language],
-  )) {
+  for (const [key, value] of Object.entries(dictionary[language])) {
     const regex = new RegExp(key, 'g');
     translatedText = translatedText.replace(regex, value);
   }
+  const text = notTranslatedText
+    ? translatedText + ':' + notTranslatedText
+    : translatedText;
   return {
-    text: translatedText + ':' + notTranslatedText,
+    text: text,
     highlights: highlights,
   };
 }
 
-export function generateUrl(type: number, id?: string) {
+export function generateUrl(type: $Enums.NotificationType, id: string) {
   switch (type) {
-    case NotificationType.LIKE:
+    case 'LIKE':
       return `/post/${id}`;
-    case NotificationType.COMMENT:
+    case 'COMMENT':
       return `/post/${id}`;
-    case NotificationType.FOLLOW:
+    case 'FOLLOW':
+      return `/profile/${id}`;
+    case 'FOLLOW_REQUEST':
       return `/profile/${id}`;
     default:
       return '';
-  }
-}
-
-export function getNotificationType(stringKey: string): NotificationType {
-  switch (stringKey) {
-    case 'like':
-      return NotificationType.LIKE;
-    case 'comment':
-      return NotificationType.COMMENT;
-    case 'follow':
-      return NotificationType.FOLLOW;
-    default:
-      return NotificationType.OTHER;
   }
 }
 
@@ -131,6 +94,13 @@ export function getFirstWords(text: string, numberOfWord: number): string {
   return firstWords;
 }
 
-export function countWords(str: string): number {
-  return str.trim().split(/\s+/).length;
+export function updateSubject(content: Content, subjectCount: number) {
+  const subject = content.text.substring(
+    content.highlights[0].offset,
+    content.highlights[0].length,
+  );
+  const replaceSubject =
+    subject + (subjectCount > 2 ? ' và những người khác' : ' và 1 người khác');
+  content.text = content.text.replace(subject, replaceSubject);
+  return content;
 }

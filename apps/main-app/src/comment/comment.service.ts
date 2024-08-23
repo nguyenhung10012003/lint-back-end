@@ -1,7 +1,7 @@
 import { ProducerService } from '@app/common/kafka/provider.service';
 import { NotificationPayload } from '@app/common/types/notification.payload';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/prisma-main-client';
+import { Prisma, $Enums } from '@prisma/prisma-main-client';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
@@ -24,6 +24,9 @@ export class CommentService {
       where: {
         id: newComment.postId,
       },
+      include: {
+        medias: true,
+      },
     });
 
     Promise.all([profile, post]).then(([profile, post]) => {
@@ -41,8 +44,11 @@ export class CommentService {
         },
         diObject: {
           id: newComment.postId,
-          name: post.content,
-          imageUrl: null,
+          name: newComment.content,
+          imageUrl:
+            post.medias[0]?.type === $Enums.MediaType.IMAGE
+              ? post.medias[0]?.url
+              : null,
         },
       };
 
