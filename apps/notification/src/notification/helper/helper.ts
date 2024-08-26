@@ -1,8 +1,8 @@
-import { Lang } from '../types/lang';
 import { Content, Highlight } from '../dto/notification';
 import { template } from './template';
 import { dictionary } from './dictionary';
 import { $Enums } from '@prisma/prisma-notification-client';
+import { $Enums as $MainEnums } from '@prisma/prisma-main-client';
 
 export const generateNotificationContent = (
   type: $Enums.NotificationType,
@@ -52,15 +52,17 @@ export const generateNotificationContent = (
   };
 };
 
-export function updateContentOnLanguage(language: Lang, content: Content) {
-  if (language === Lang.VI) {
+export function updateContentOnLanguage(
+  lang: $MainEnums.Lang,
+  content: Content,
+) {
+  if (lang === $MainEnums.Lang.VI) {
     return content;
   }
   const highlights = content.highlights;
   let translatedText = content.text.split(':')[0];
   const notTranslatedText = content.text.split(':')[1];
-
-  for (const [key, value] of Object.entries(dictionary[language])) {
+  for (const [key, value] of Object.entries(dictionary[lang])) {
     const regex = new RegExp(key, 'g');
     translatedText = translatedText.replace(regex, value);
   }

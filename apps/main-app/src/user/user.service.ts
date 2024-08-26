@@ -27,6 +27,7 @@ export class UserService {
       where: params.where,
       include: {
         profile: true,
+        setting: true,
       },
     });
   }

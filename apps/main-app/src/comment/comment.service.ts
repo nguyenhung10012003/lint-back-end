@@ -18,6 +18,13 @@ export class CommentService {
       where: {
         userId: newComment.userId,
       },
+      include: {
+        user: {
+          include: {
+            setting: true,
+          },
+        },
+      },
     });
 
     const post = this.prismaService.post.findUnique({
@@ -50,6 +57,7 @@ export class CommentService {
               ? post.medias[0]?.url
               : null,
         },
+        lang: profile.user.setting?.lang || 'VI',
       };
 
       this.producerService.produce({

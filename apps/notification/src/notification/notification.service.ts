@@ -5,12 +5,14 @@ import { NotificationWhereUniqueDto } from './dto/delete.notification';
 import { UpdateStatusDto } from './dto/update.status';
 import { updateContentOnLanguage, updateSubject } from './helper/helper';
 import { UpsertNotificationDto } from './dto/upsert.notification';
-import { Lang } from './types/lang';
-
+import { $Enums as $MainEnums } from '@prisma/prisma-main-client';
 @Injectable()
 export class NotificationService {
   constructor(private prismaService: PrismaService) {}
-  async create(data: UpsertNotificationDto, lang: Lang = Lang.VI) {
+  async create(
+    data: UpsertNotificationDto,
+    lang: $MainEnums.Lang = $MainEnums.Lang.VI,
+  ) {
     const notification = await this.prismaService.notification.create({
       data: {
         ...data,
@@ -25,7 +27,10 @@ export class NotificationService {
     };
   }
 
-  async upsert(data: UpsertNotificationDto, lang: Lang = Lang.VI) {
+  async upsert(
+    data: UpsertNotificationDto,
+    lang: $MainEnums.Lang = $MainEnums.Lang.VI,
+  ) {
     const lastNotification = await this.prismaService.notification.findUnique({
       where: {
         type_diId_userId: {
@@ -121,35 +126,25 @@ export class NotificationService {
     });
   }
 
-  async changeLanguage({ lang, userId }: { lang: Lang; userId: string }) {
+  async changeLanguage({
+    lang,
+    userId,
+  }: {
+    lang: $MainEnums.Lang;
+    userId: string;
+  }) {
     const notifications = await this.prismaService.notification.findMany({
       where: {
         userId: userId,
       },
     });
     for (const notification of notifications) {
-      this.prismaService.notification.update({
+      await this.prismaService.notification.update({
         where: { id: notification.id },
         data: {
           compiledContent: updateContentOnLanguage(lang, notification.content),
         },
       });
     }
-    // this.prismaService.$runCommandRaw({
-    //   update: 'Notification',
-    //   updates: [
-    //     {
-    //       q: { userId: userId },
-    //       u: {
-    //         $set: {
-    //           compiledContent: JSON.stringify(
-    //             updateContentOnLanguage(lang, JSON.parse('$v.content')),
-    //           ),
-    //         },
-    //       },
-    //       multi: true,
-    //     },
-    //   ],
-    // });
   }
 }

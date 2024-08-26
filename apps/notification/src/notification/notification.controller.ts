@@ -13,7 +13,6 @@ import { NotificationService } from './notification.service';
 import { FindParams } from './dto/find.params';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateStatusDto } from './dto/update.status';
-import { Lang } from './types/lang';
 
 @Controller('notifications')
 @UseGuards(AuthGuard)
@@ -51,15 +50,6 @@ export class NotificationController {
   delete(@Request() request, @Param('id') id: string): Promise<void> {
     return this.notificationService.delete({
       id: id,
-      userId: request.user.sub,
-    });
-  }
-
-  @Patch('/user/language')
-  updateLanguage(@Request() request, @Body() { lang }: { lang: string }) {
-    console.log(lang);
-    return this.notificationService.changeLanguage({
-      lang: Lang[lang.toUpperCase() as keyof typeof Lang],
       userId: request.user.sub,
     });
   }

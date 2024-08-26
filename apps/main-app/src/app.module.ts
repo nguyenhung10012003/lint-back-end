@@ -16,10 +16,29 @@ import { FeedModule } from './feed/feed.module';
 import { BlacklistModule } from './blacklist/blacklist.module';
 import { SearchModule } from './search/search.module';
 import { FacebookStrategy } from '@app/common/strategies/facebook-oauth.strategy';
+import { SettingModule } from './setting/setting.module';
 
 @Module({
-  imports: [UserModule, ProfileModule, CommonModule, AuthModule, PostModule, FollowingModule, CommentModule, LikeModule, FeedModule, BlacklistModule, SearchModule],
+  imports: [
+    UserModule,
+    ProfileModule,
+    CommonModule,
+    AuthModule,
+    PostModule,
+    FollowingModule,
+    CommentModule,
+    LikeModule,
+    FeedModule,
+    BlacklistModule,
+    SearchModule,
+    SettingModule,
+  ],
   controllers: [],
-  providers: [AccessTokenStrategy, RefreshTokenStrategy, GoogleStrategy, FacebookStrategy],
+  providers: [
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+    GoogleStrategy,
+    FacebookStrategy,
+  ],
 })
 export class AppModule {}

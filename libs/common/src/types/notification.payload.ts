@@ -1,6 +1,7 @@
 export class NotificationPayload {
   postId: string | null;
   userId: string;
+  lang: string;
 
   subject: Obj;
   diObject: Obj;
@@ -8,6 +9,6 @@ export class NotificationPayload {
 
 class Obj {
   id: string;
-  name: string | null;
-  imageUrl: string | null;
+  name?: string | null;
+  imageUrl?: string | null;
 }

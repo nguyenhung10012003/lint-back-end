@@ -14,10 +14,18 @@ export class LikeService {
     // Create a new like
     const newLike = await this.prismaService.like.create(params);
 
+    // If the like is for a post, send a notification
     if (newLike.postId) {
       const profile = this.prismaService.profile.findUnique({
         where: {
           userId: newLike.userId,
+        },
+        include: {
+          user: {
+            include: {
+              setting: true,
+            },
+          },
         },
       });
 
@@ -51,6 +59,7 @@ export class LikeService {
                 ? post.medias[0]?.url
                 : null,
           },
+          lang: profile.user.setting?.lang || 'VI',
         };
 
         this.producerService.produce({

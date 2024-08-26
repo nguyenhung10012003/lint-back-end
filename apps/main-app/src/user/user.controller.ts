@@ -6,11 +6,9 @@ import {
   Get,
   Param,
   Post,
-  Patch,
   Query,
   UseGuards,
   UseInterceptors,
-  Req,
 } from '@nestjs/common';
 import { UserQuery } from './model/user.query';
 import { UserService } from './user.service';
@@ -40,15 +38,5 @@ export class UserController {
   @Post()
   create(@Body() data: { email: string; password: string }) {
     return this.userService.create(data);
-  }
-
-  @Patch()
-  update(@Req() req: any, @Body() data: { isPrivate: boolean }) {
-    return this.userService.update({
-      where: {
-        id: req.user.userId,
-      },
-      data,
-    });
   }
 }

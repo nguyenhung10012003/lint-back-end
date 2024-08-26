@@ -20,54 +20,56 @@ export class FollowingService {
     data: Prisma.FollowCreateInput;
     include?: Prisma.FollowInclude;
   }) {
-    const following = await this.prismaService.user.findUnique({
+    const followingSetting = await this.prismaService.setting.findUnique({
       where: {
-        id: params.data.following.connect?.id,
+        userId: params.data.following.connect?.id,
       },
     });
 
-    if (following?.isPrivate) {
+    if (followingSetting?.status === 'PRIVATE') {
       params.data.accepted = false;
     }
 
     const follow = await this.prismaService.follow.create(params);
 
-    const profile = this.prismaService.profile.findUnique({
+    const follower = this.prismaService.user.findUniqueOrThrow({
       where: {
-        userId: follow.followerId,
+        id: follow.followerId,
+      },
+      include: {
+        profile: true,
       },
     });
 
-    profile.then((profile) => {
-      if (!profile) {
-        throw new Error('Post or profile not found');
-      }
-
+    Promise.all([follower]).then(([follower]) => {
       const payload: NotificationPayload = {
         postId: null,
         userId: follow.followingId,
         subject: {
-          id: follow.followerId,
-          name: profile.name,
-          imageUrl: profile.avatar,
+          id: follower.id,
+          name: follower.profile?.name,
+          imageUrl: follower.profile?.avatar,
         },
         diObject: {
           id: follow.id,
           name: null,
           imageUrl: null,
         },
+        lang: followingSetting?.lang || 'VI',
       };
       this.producerService.produce({
         topic: 'notification',
         messages: [
           {
-            key: following?.isPrivate ? 'follow_request' : 'follow',
+            key:
+              followingSetting?.status === 'PRIVATE'
+                ? 'follow_request'
+                : 'follow',
             value: JSON.stringify(payload),
           },
         ],
       });
     });
-
     return follow;
   }
 

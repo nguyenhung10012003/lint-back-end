@@ -9,10 +9,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  const kafkaUrl = process.env.KAFKA_URL;
-  if (!kafkaUrl) {
-    throw new Error('KAFKA_URL environment variable is not defined.');
-  }
+  const kafkaUrl = process.env.KAFKA_URL || '';
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,

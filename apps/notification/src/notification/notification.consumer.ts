@@ -5,6 +5,7 @@ import { generateNotificationContent, generateUrl } from './helper/helper';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UpsertNotificationDto } from './dto/upsert.notification';
 import { $Enums } from '@prisma/prisma-notification-client';
+import { $Enums as $MainEnums } from '@prisma/prisma-main-client';
 import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 
@@ -18,13 +19,18 @@ export class NotificationConsumer implements OnModuleInit {
   ) {}
   async onModuleInit() {
     await this.consumerService.consume(
-      { topics: ['notification'] },
+      { topics: ['notification', 'setting'] },
       {
-        eachMessage: async ({ message }) => {
+        eachMessage: async ({ topic, message }) => {
           const { key, value } = message;
           try {
             if (key && value) {
-              await this.onMessage(key, value);
+              if (topic === 'notification') {
+                this.upsertNotification(key, value);
+              }
+              if (topic === 'setting') {
+                this.changeNotificationLanguage(value);
+              }
             }
           } catch (error) {
             console.error(error);
@@ -34,7 +40,7 @@ export class NotificationConsumer implements OnModuleInit {
     );
   }
 
-  async onMessage(key: Buffer, value: Buffer) {
+  async upsertNotification(key: Buffer, value: Buffer) {
     const type = $Enums.NotificationType[key.toString().toUpperCase()];
     const data = JSON.parse(value.toString());
 
@@ -62,7 +68,10 @@ export class NotificationConsumer implements OnModuleInit {
       read: false,
     };
 
-    const notification = await this.notificationService.upsert(upsertData);
+    const notification = await this.notificationService.upsert(
+      upsertData,
+      $MainEnums.Lang[data.lang],
+    );
 
     const notPush = await this.redis.get(
       `${notification.type}_${notification.diId}_${notification.diId}`,
@@ -76,5 +85,13 @@ export class NotificationConsumer implements OnModuleInit {
         60 * 10, // 10 minutes
       );
     }
+  }
+
+  async changeNotificationLanguage(value: Buffer) {
+    const data = JSON.parse(value.toString());
+    await this.notificationService.changeLanguage({
+      userId: data.userId,
+      lang: data.lang,
+    });
   }
 }

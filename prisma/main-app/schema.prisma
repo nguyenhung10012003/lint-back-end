@@ -22,7 +22,7 @@ model User {
   likes       Like[]
   blacklist   Blacklist?   @relation("blacklist_owner")
   inBlacklist Blacklist[]  @relation("blacklist_user")
-  isPrivate   Boolean      @default(false)
+  setting     Setting?
 }
 
 model Profile {
@@ -38,6 +38,15 @@ model Profile {
   bio       String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Setting {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  theme     Theme     @default(DEFAULT)
+  lang      Lang      @default(VI)
+  status    AccountStatus @default(PUBLIC)
 }
 
 model Media_Link {
@@ -156,4 +165,20 @@ enum LinkType {
 enum LikeFor {
   POST
   COMMENT
+}
+
+enum Lang {
+  VI 
+  EN
+}
+
+enum Theme {
+  DEFAULT
+  LIGHT
+  DARK
+}
+
+enum AccountStatus {
+  PUBLIC
+  PRIVATE
 }
