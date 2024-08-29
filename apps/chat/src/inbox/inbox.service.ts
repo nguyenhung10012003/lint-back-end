@@ -9,14 +9,23 @@ export class InboxService {
     userId,
     skip,
     take,
+    lastTimestamp
   }: {
     userId: string;
     skip?: number;
     take?: number;
+    lastTimestamp?: number
   }) {
     return this.prisma.client.subcription.findMany({
       where: {
         userId: userId,
+        room: { 
+          lastMessage: {
+            createdAt: {
+              lt: new Date(lastTimestamp || Date.now())
+            }
+          }
+        }
       },
       include: {
         room: {

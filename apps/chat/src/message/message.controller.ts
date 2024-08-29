@@ -92,14 +92,23 @@ export class MessageController {
   @Get()
   async getMessages(@Req() req: any, @Query() query: MessageQuery) {
     return this.messageService.getMessages({
-      ...query.extract(),
+      skip: query.skip,
+      take: query.take,
       where: {
+        roomId: query.roomId,
         room: {
           members: {
             has: req.user.userId,
           },
         },
+        createdAt: {
+          lt: new Date(query.lastTimestamp || Date.now()),
+        },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: query.extractInclude(),
     });
   }
 

@@ -24,6 +24,7 @@ export class InboxController {
       userId: req.user.userId,
       skip: query.skip,
       take: query.take,
+      lastTimestamp: query.lastTimestamp,
     });
   }
 

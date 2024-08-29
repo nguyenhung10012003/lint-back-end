@@ -11,4 +11,8 @@ export class InboxQuery implements SkipQuery, TakeQuery {
   @IsOptional()
   @Type(() => Number)
   take?: number;
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  lastTimestamp?: number;
 }

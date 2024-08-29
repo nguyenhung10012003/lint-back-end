@@ -49,6 +49,24 @@ export class RoomController {
     });
   }
 
+  /**
+   * Get a room by id
+   * @param req request object
+   * @param id room id
+   * @returns room
+   */
+  @Get(':id')
+  async getRoom(@Req() req: any, @Param('id') id: string) {
+    return this.roomService.getRoom({
+      where: {
+        id: id,
+        members: {
+          has: req.user.userId,
+        },
+      },
+    });
+  }
+
   @Delete(':id')
   async deleteRoom(@Req() req: any, @Param('id') id: string) {
     return this.roomService.deleteRoom({

@@ -23,7 +23,7 @@ export class UserService {
     where: Prisma.UserWhereUniqueInput;
     include?: Prisma.UserInclude;
   }): Promise<User | null> {
-    return this.prismaService.user.findUnique({
+    return this.prismaService.user.findUniqueOrThrow({
       where: params.where,
       include: {
         profile: true,
